@@ -149,6 +149,7 @@ describe('Private Voting Smart Contract Tests', () => {
     expect(finalLedger.noTally).toBe(0n);
   });
 
+  // Verify that an invalid credential (not present in the eligible Merkle Root) is rejected by the circuit
   it('Rejection: voting with an invalid credential is rejected', async () => {
     // Generate a different set of keys including invalidSk to build a mathematically consistent proof for a different tree
     const invalidSk = new Uint8Array(32);
