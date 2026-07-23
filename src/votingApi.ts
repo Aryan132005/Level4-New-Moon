@@ -60,6 +60,7 @@ export interface ProposalState {
   noTally: number;
   votingOpen: boolean;
   adminCommitment: string; // Hex string
+  eligibilityRoot: string; // Hex string
   nullifiers: string[]; // List of spent nullifiers (hex strings)
 }
 
@@ -287,6 +288,105 @@ export async function createMidnightProviders(api: any, walletAddress: string): 
   };
 }
 
+function concatBytes(a: Uint8Array, b: Uint8Array): Uint8Array {
+  const c = new Uint8Array(a.length + b.length);
+  c.set(a, 0);
+  c.set(b, a.length);
+  return c;
+}
+
+/**
+ * Depth-3 Merkle Tree Helper supporting 8 Leaves
+ */
+export class MerkleTree3 {
+  leaves: Uint8Array[];
+  level1: Uint8Array[] = [];
+  level2: Uint8Array[] = [];
+  root: Uint8Array;
+
+  private constructor(leaves: Uint8Array[], level1: Uint8Array[], level2: Uint8Array[], root: Uint8Array) {
+    this.leaves = leaves;
+    this.level1 = level1;
+    this.level2 = level2;
+    this.root = root;
+  }
+
+  static async create(leaves: Uint8Array[]): Promise<MerkleTree3> {
+    if (leaves.length !== 8) {
+      throw new Error('MerkleTree3 requires exactly 8 leaves');
+    }
+    const level1: Uint8Array[] = [];
+    for (let i = 0; i < 4; i++) {
+      level1.push(await sha256(concatBytes(leaves[2 * i], leaves[2 * i + 1])));
+    }
+    const level2: Uint8Array[] = [];
+    for (let i = 0; i < 2; i++) {
+      level2.push(await sha256(concatBytes(level1[2 * i], level1[2 * i + 1])));
+    }
+    const root = await sha256(concatBytes(level2[0], level2[1]));
+
+    return new MerkleTree3(leaves, level1, level2, root);
+  }
+
+  async getProof(idx: number): Promise<{
+    path: Uint8Array[];
+    leftInputs: Uint8Array[];
+    rightInputs: Uint8Array[];
+  }> {
+    if (idx < 0 || idx >= 8) {
+      throw new Error('Invalid leaf index');
+    }
+    const path: Uint8Array[] = [];
+    const leftInputs: Uint8Array[] = [];
+    const rightInputs: Uint8Array[] = [];
+
+    // Level 0:
+    const isLeft0 = idx % 2 === 1;
+    const sibIdx0 = isLeft0 ? idx - 1 : idx + 1;
+    const sibling0 = this.leaves[sibIdx0];
+    path.push(sibling0);
+    if (isLeft0) {
+      leftInputs.push(sibling0);
+      rightInputs.push(this.leaves[idx]);
+    } else {
+      leftInputs.push(this.leaves[idx]);
+      rightInputs.push(sibling0);
+    }
+    const node0 = await sha256(concatBytes(leftInputs[0], rightInputs[0]));
+
+    // Level 1:
+    const p1 = Math.floor(idx / 2);
+    const isLeft1 = p1 % 2 === 1;
+    const sibIdx1 = isLeft1 ? p1 - 1 : p1 + 1;
+    const sibling1 = this.level1[sibIdx1];
+    path.push(sibling1);
+    if (isLeft1) {
+      leftInputs.push(sibling1);
+      rightInputs.push(node0);
+    } else {
+      leftInputs.push(node0);
+      rightInputs.push(sibling1);
+    }
+    const node1 = await sha256(concatBytes(leftInputs[1], rightInputs[1]));
+
+    // Level 2:
+    const p2 = Math.floor(p1 / 2);
+    const isLeft2 = p2 % 2 === 1;
+    const sibIdx2 = isLeft2 ? p2 - 1 : p2 + 1;
+    const sibling2 = this.level2[sibIdx2];
+    path.push(sibling2);
+    if (isLeft2) {
+      leftInputs.push(sibling2);
+      rightInputs.push(node1);
+    } else {
+      leftInputs.push(node1);
+      rightInputs.push(sibling2);
+    }
+
+    return { path, leftInputs, rightInputs };
+  }
+}
+
 /**
  * Voting API Wrapper supporting both Lace Wallet and Simulator
  */
@@ -295,6 +395,7 @@ export const VotingAPI = {
   deployProposal: async (
     proposalText: string,
     adminSecretHex: string,
+    eligibilityRootHex: string,
     mode: 'lace' | 'simulator'
   ): Promise<string> => {
     const adminSk = fromHex(adminSecretHex);
@@ -318,7 +419,7 @@ export const VotingAPI = {
         compiledContract: CompiledVotingContract,
         privateStateId: 'votingPrivateState',
         initialPrivateState: {},
-        args: [proposalId, proposalText, adminCommit]
+        args: [proposalId, proposalText, adminCommit, fromHex(eligibilityRootHex)]
       });
 
       const contractAddress = String(deployed.deployTxData.public.contractAddress);
@@ -331,6 +432,7 @@ export const VotingAPI = {
         noTally: 0,
         votingOpen: true,
         adminCommitment: adminCommitHex,
+        eligibilityRoot: eligibilityRootHex,
         nullifiers: []
       };
 
@@ -358,6 +460,7 @@ export const VotingAPI = {
         noTally: 0,
         votingOpen: true,
         adminCommitment: adminCommitHex,
+        eligibilityRoot: eligibilityRootHex,
         nullifiers: []
       };
 
@@ -369,11 +472,16 @@ export const VotingAPI = {
     }
   },
 
-  // Cast a Vote (YES/NO)
+  // Cast a Vote (YES/NO) with Merkle Proof
   castVote: async (
     contractAddress: string,
     voterSecretHex: string,
     choice: boolean,
+    proofData: {
+      path: Uint8Array[];
+      leftInputs: Uint8Array[];
+      rightInputs: Uint8Array[];
+    },
     mode: 'lace' | 'simulator'
   ): Promise<void> => {
     const voterSk = fromHex(voterSecretHex);
@@ -385,7 +493,10 @@ export const VotingAPI = {
       const mockWitnesses = {
         voterSecretKey: (context: any) => [context.currentPrivateState, voterSk] as [any, Uint8Array],
         voteChoice: (context: any) => [context.currentPrivateState, choice] as [any, boolean],
-        adminSecretKey: (context: any) => [context.currentPrivateState, new Uint8Array(32)] as [any, Uint8Array]
+        adminSecretKey: (context: any) => [context.currentPrivateState, new Uint8Array(32)] as [any, Uint8Array],
+        merklePath: (context: any) => [context.currentPrivateState, proofData.path] as [any, Uint8Array[]],
+        merkleLeftInputs: (context: any) => [context.currentPrivateState, proofData.leftInputs] as [any, Uint8Array[]],
+        merkleRightInputs: (context: any) => [context.currentPrivateState, proofData.rightInputs] as [any, Uint8Array[]]
       };
 
       const compiledWithWitnesses = {
@@ -411,6 +522,24 @@ export const VotingAPI = {
 
       if (!proposal.votingOpen) {
         throw new Error('failed assert: Voting is closed');
+      }
+
+      // Verify voter credential in simulator mode
+      const voterCommitment = await sha256(voterSk);
+      let node = voterCommitment;
+      for (let i = 0; i < 3; i++) {
+        const left = proofData.leftInputs[i];
+        const right = proofData.rightInputs[i];
+        const isLeftMatch = toHex(left) === toHex(node) && toHex(right) === toHex(proofData.path[i]);
+        const isRightMatch = toHex(right) === toHex(node) && toHex(left) === toHex(proofData.path[i]);
+        if (!isLeftMatch && !isRightMatch) {
+          throw new Error('failed assert: Invalid Merkle proof level ' + i);
+        }
+        node = await sha256(concatBytes(left, right));
+      }
+
+      if (toHex(node) !== proposal.eligibilityRoot) {
+        throw new Error('failed assert: Voter credential is not in the eligibility set');
       }
 
       const dataToHash = new Uint8Array(64);
@@ -453,7 +582,10 @@ export const VotingAPI = {
       const mockWitnesses = {
         voterSecretKey: (context: any) => [context.currentPrivateState, new Uint8Array(32)] as [any, Uint8Array],
         voteChoice: (context: any) => [context.currentPrivateState, true] as [any, boolean],
-        adminSecretKey: (context: any) => [context.currentPrivateState, adminSk] as [any, Uint8Array]
+        adminSecretKey: (context: any) => [context.currentPrivateState, adminSk] as [any, Uint8Array],
+        merklePath: (context: any) => [context.currentPrivateState, [new Uint8Array(32), new Uint8Array(32), new Uint8Array(32)]] as [any, Uint8Array[]],
+        merkleLeftInputs: (context: any) => [context.currentPrivateState, [new Uint8Array(32), new Uint8Array(32), new Uint8Array(32)]] as [any, Uint8Array[]],
+        merkleRightInputs: (context: any) => [context.currentPrivateState, [new Uint8Array(32), new Uint8Array(32), new Uint8Array(32)]] as [any, Uint8Array[]]
       };
 
       const compiledWithWitnesses = {
@@ -510,7 +642,8 @@ export const VotingAPI = {
                 yesTally: Number(l.yesTally),
                 noTally: Number(l.noTally),
                 votingOpen: l.votingOpen,
-                adminCommitment: toHex(l.adminCommitment)
+                adminCommitment: toHex(l.adminCommitment),
+                eligibilityRoot: toHex(l.eligibilityRoot)
               });
             } else {
               updatedProposals.push(prop);
@@ -519,7 +652,6 @@ export const VotingAPI = {
             updatedProposals.push(prop);
           }
         }
-        return updatedProposals;
         return updatedProposals;
       } catch {
         return localProposals;
