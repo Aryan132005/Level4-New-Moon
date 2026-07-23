@@ -16,6 +16,9 @@ export ledger eligibilityRoot: Bytes<32>;
 witness voterSecretKey(): Bytes<32>;
 witness voteChoice(): Boolean;
 witness adminSecretKey(): Bytes<32>;
+witness merklePath(): Vector<3, Bytes<32>>;
+witness merkleLeftInputs(): Vector<3, Bytes<32>>;
+witness merkleRightInputs(): Vector<3, Bytes<32>>;
 
 // Constructor to initialize state
 constructor(pId: Bytes<32>, pText: Opaque<"string">, adminCommit: Bytes<32>, eligRoot: Bytes<32>) {
@@ -34,6 +37,34 @@ export circuit castVote(): [] {
     // Retrieve private inputs via witness functions
     const sk = voterSecretKey();
     const choice = disclose(voteChoice());
+
+    // 1. Compute the voter commitment: commitment = persistentHash(voterSecretKey)
+    const commitment = persistentHash<Bytes<32>>(sk);
+
+    // 2. Retrieve Merkle path and left/right inputs
+    const path = merklePath();
+    const leftInputs = merkleLeftInputs();
+    const rightInputs = merkleRightInputs();
+
+    // 3. Level 0 verification and hashing
+    const left0 = leftInputs[0];
+    const right0 = rightInputs[0];
+    assert((left0 == commitment && right0 == path[0]) || (left0 == path[0] && right0 == commitment), "Invalid Merkle proof level 0");
+    const node0 = persistentHash<Vector<2, Bytes<32>>>([left0, right0]);
+
+    // 4. Level 1 verification and hashing
+    const left1 = leftInputs[1];
+    const right1 = rightInputs[1];
+    assert((left1 == node0 && right1 == path[1]) || (left1 == path[1] && right1 == node0), "Invalid Merkle proof level 1");
+    const node1 = persistentHash<Vector<2, Bytes<32>>>([left1, right1]);
+
+    // 5. Level 2 verification and hashing
+    const left2 = leftInputs[2];
+    const right2 = rightInputs[2];
+    assert((left2 == node1 && right2 == path[2]) || (left2 == path[2] && right2 == node1), "Invalid Merkle proof level 2");
+    const node2 = persistentHash<Vector<2, Bytes<32>>>([left2, right2]);
+
+    assert(node2 == eligibilityRoot, "Voter credential is not in the eligibility set");
 
     // Derive nullifier inside the ZK proof: nullifier = persistentHash(secret key + proposal ID)
     const nullifier = disclose(persistentHash<Vector<2, Bytes<32>>>([sk, proposalId]));
