@@ -66,13 +66,16 @@ export circuit castVote(): [] {
 
     assert(node2 == eligibilityRoot, "Voter credential is not in the eligibility set");
 
-    // Derive nullifier inside the ZK proof: nullifier = persistentHash(secret key + proposal ID)
+    // 7. Derive credential nullifier inside the ZK proof: nullifier = persistentHash(credential secret key + proposal ID).
+    // This serves as the double-vote guard: since the credential secret key is unique and validated,
+    // the derived nullifier is deterministic. It prevents the same credential from voting twice
+    // for this proposal, without revealing which credential it is or linking it to the wallet/vote.
     const nullifier = disclose(persistentHash<Vector<2, Bytes<32>>>([sk, proposalId]));
 
-    // Prevent double voting by checking if nullifier is already present on the ledger
+    // 8. Prevent double voting by asserting that the nullifier is not already recorded on the ledger
     assert(!nullifierSet.member(nullifier), "Double voting is not allowed");
 
-    // Mark nullifier as spent on-chain
+    // 9. Register the nullifier on the ledger as spent
     nullifierSet.insert(nullifier, true);
 
     // Publicly increment tally delta without revealing choice-voter mapping
