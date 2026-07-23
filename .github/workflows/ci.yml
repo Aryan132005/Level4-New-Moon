@@ -37,11 +37,11 @@ jobs:
       run: |
         compact --version
 
-    - name: Compile Compact Smart Contract
+    - name: Compile Compact Smart Contract (Level 4 ZK Circuits)
       run: |
         compact compile contracts/voting.compact contracts/managed/voting
-
-    - name: Run Vitest Unit Tests
+ 
+    - name: Run Vitest Unit Tests (Level 4 Credential Verification)
       run: |
         npm run test
 
