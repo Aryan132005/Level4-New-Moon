@@ -320,9 +320,9 @@ export function App() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {mode === 'simulator' ? (
-            <span className="badge badge-simulator">● Sandbox Simulator</span>
+            <span className="badge badge-simulator">Sandbox Simulator</span>
           ) : (
-            <span className="badge badge-lace">● Connected to Lace ({walletAddress?.slice(0, 8)}...)</span>
+            <span className="badge badge-lace">Connected to Lace ({walletAddress?.slice(0, 8)}...)</span>
           )}
           
           {mode === 'simulator' && (

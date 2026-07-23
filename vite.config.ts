@@ -7,6 +7,11 @@ export default defineConfig({
   plugins: [react(), wasm(), topLevelAwait()],
   server: {
     port: 5173
+  },
+  build: {
+    rollupOptions: {
+      external: ['crypto', 'node:fs/promises', 'node:path']
+    }
   }
 });
 
