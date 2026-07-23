@@ -7,7 +7,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "compile": "wsl /home/aaru/.local/bin/compact compile contracts/voting.compact src/generated",
+    "compile": "wsl /home/aaru/.local/bin/compact compile contracts/voting.compact contracts/managed/voting",
     "dev": "vite",
     "build": "tsc && vite build",
     "test": "vitest run"
