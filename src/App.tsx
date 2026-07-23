@@ -298,9 +298,6 @@ export function App() {
     showToast('info', 'Generated new cryptographic secret key.');
   };
 
-  // Active proposal details
-  const activeProposal = proposals.find(p => p.address === activeProposalId);
-
   // Compute percentages
   const totalVotes = activeProposal ? activeProposal.yesTally + activeProposal.noTally : 0;
   const yesPercent = totalVotes > 0 ? Math.round((activeProposal!.yesTally / totalVotes) * 100) : 0;
