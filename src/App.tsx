@@ -475,7 +475,7 @@ export function App() {
                     </button>
                   </div>
 
-                  {/* ZK Proof Prover Stepper status display */}
+                  {/* ZK Proof Prover Stepper visual pipeline status display for auditing/reviewing ZK proof stages */}
                   {provingStage !== 'idle' && (
                     <div className="proving-stepper glass-panel" style={{ marginTop: '1.5rem', padding: '1rem', border: '1px solid var(--border-glass)', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.02)' }}>
                       <h4 style={{ color: 'white', marginBottom: '0.75rem', fontSize: '0.9rem' }}>ZK Proving Workflow Pipeline:</h4>
