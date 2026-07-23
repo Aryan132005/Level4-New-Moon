@@ -4,6 +4,9 @@ export type Witnesses<PS> = {
   voterSecretKey(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, Uint8Array];
   voteChoice(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, boolean];
   adminSecretKey(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, Uint8Array];
+  merklePath(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, Uint8Array[]];
+  merkleLeftInputs(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, Uint8Array[]];
+  merkleRightInputs(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, Uint8Array[]];
 }
 
 export type ImpureCircuits<PS> = {
@@ -38,6 +41,7 @@ export type Ledger = {
   };
   readonly votingOpen: boolean;
   readonly adminCommitment: Uint8Array;
+  readonly eligibilityRoot: Uint8Array;
 }
 
 export type ContractReferenceLocations = any;
@@ -53,7 +57,8 @@ export declare class Contract<PS = any, W extends Witnesses<PS> = Witnesses<PS>>
   initialState(context: __compactRuntime.ConstructorContext<PS>,
                pId_0: Uint8Array,
                pText_0: string,
-               adminCommit_0: Uint8Array): __compactRuntime.ConstructorResult<PS>;
+               adminCommit_0: Uint8Array,
+               eligRoot_0: Uint8Array): __compactRuntime.ConstructorResult<PS>;
 }
 
 export declare function ledger(state: __compactRuntime.StateValue | __compactRuntime.ChargedState): Ledger;
