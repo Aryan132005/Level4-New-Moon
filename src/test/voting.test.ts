@@ -188,6 +188,7 @@ describe('Private Voting Smart Contract Tests', () => {
     }).toThrowError('failed assert: Voter credential is not in the eligibility set');
   });
 
+  // Verify that casting two votes with the same credential key is rejected by the nullifier set check
   it('Double-vote rejection: same credential nullifier used twice is rejected', async () => {
     const proof = getProof(merkleTree, 2); // voter 2
 
