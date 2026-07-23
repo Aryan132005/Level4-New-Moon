@@ -77,6 +77,7 @@ export interface ProposalState {
   noTally: number;
   votingOpen: boolean;
   adminCommitment: string; // Hex string
+  adminSecretKey?: string; // Optional secret key retained for simulator convenience
   eligibilityRoot: string; // Hex string
   nullifiers: string[]; // List of spent nullifiers (hex strings)
 }
@@ -95,6 +96,12 @@ export function getSimulatedProposals(): ProposalState[] {
   } catch {
     return [];
   }
+}
+
+// Clear simulator storage
+export function clearSimulatedProposals(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(SIMULATOR_STORAGE_KEY);
 }
 
 // Save proposals to local storage for simulator
@@ -450,6 +457,7 @@ export const VotingAPI = {
         noTally: 0,
         votingOpen: true,
         adminCommitment: adminCommitHex,
+        adminSecretKey: normalizedSkHex,
         eligibilityRoot: eligibilityRootHex,
         nullifiers: []
       };
@@ -478,6 +486,7 @@ export const VotingAPI = {
         noTally: 0,
         votingOpen: true,
         adminCommitment: adminCommitHex,
+        adminSecretKey: normalizedSkHex,
         eligibilityRoot: eligibilityRootHex,
         nullifiers: []
       };

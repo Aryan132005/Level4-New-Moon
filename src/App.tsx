@@ -108,6 +108,16 @@ export function App() {
     loadProposals();
   }, [mode]);
 
+  // Find active proposal
+  const activeProposal = proposals.find(p => p.address === activeProposalId);
+
+  // Auto-sync matching admin secret key whenever active proposal is selected
+  useEffect(() => {
+    if (activeProposal) {
+      setAdminSecret(activeProposal.adminSecretKey || DEFAULT_ADMIN_SECRET);
+    }
+  }, [activeProposalId, proposals]);
+
   // Connect Lace Wallet
   const handleConnectWallet = async () => {
     try {
@@ -538,10 +548,10 @@ export function App() {
                         <button
                           type="button"
                           className="btn btn-secondary btn-small"
-                          onClick={() => setAdminSecret(DEFAULT_ADMIN_SECRET)}
-                          title="Autofill the default admin secret key for template proposals"
+                          onClick={() => setAdminSecret(activeProposal.adminSecretKey || DEFAULT_ADMIN_SECRET)}
+                          title="Autofill the matching secret key for this active proposal"
                         >
-                          🔑 Autofill Default Admin Secret
+                          🔑 Autofill Key for this Proposal
                         </button>
                         <button
                           type="button"
