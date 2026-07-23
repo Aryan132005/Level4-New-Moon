@@ -7,7 +7,8 @@ import {
   toHex,
   fromHex,
   sha256,
-  MerkleTree3
+  MerkleTree3,
+  DEFAULT_ADMIN_SECRET
 } from './votingApi';
 
 interface Toast {
@@ -70,9 +71,7 @@ export function App() {
         const list = await VotingAPI.getProposals(mode);
         if (mode === 'simulator' && list.length === 0) {
           // Add a default template proposal
-          const adminSeed = new Uint8Array(32);
-          adminSeed[0] = 99;
-          const adminSecretHex = toHex(adminSeed);
+          const adminSecretHex = DEFAULT_ADMIN_SECRET;
 
           // Compute Merkle Root of the 8 demo credentials
           const commitments = await Promise.all(
@@ -521,22 +520,42 @@ export function App() {
                 <div>
                   <hr style={{ border: 'none', borderBottom: '1px solid var(--border-glass)', margin: '2rem 0' }} />
                   <h3 className="panel-title">🛡️ Admin Control</h3>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                    Close the voting period to freeze ballot submissions. Submit the admin secret key matching the commitment designated during proposal creation.
+                  </p>
                   <form onSubmit={handleCloseVoting}>
                     <div className="form-group">
                       <label className="form-label">Admin Secret Key (Hex)</label>
                       <input
                         type="text"
                         className="form-input"
-                        placeholder="Must match the admin commitment designated during proposal deployment"
+                        placeholder="e.g. 6300000000000000000000000000000000000000000000000000000000000000"
                         value={adminSecret}
                         onChange={(e) => setAdminSecret(e.target.value)}
                         required
                       />
+                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-small"
+                          onClick={() => setAdminSecret(DEFAULT_ADMIN_SECRET)}
+                          title="Autofill the default admin secret key for template proposals"
+                        >
+                          🔑 Autofill Default Admin Secret
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-small"
+                          onClick={() => generateRandomHexKey(setAdminSecret)}
+                        >
+                          🎲 Generate New Key
+                        </button>
+                      </div>
                     </div>
                     <button
                       type="submit"
                       className="btn btn-secondary btn-action"
-                      style={{ width: '100%', borderColor: 'rgba(255, 59, 48, 0.4)', color: '#ff7b75' }}
+                      style={{ width: '100%', borderColor: 'rgba(255, 59, 48, 0.4)', color: '#ff7b75', marginTop: '0.75rem' }}
                       disabled={isClosing || !adminSecret}
                     >
                       {isClosing ? 'Closing voting...' : 'Close Voting Period'}

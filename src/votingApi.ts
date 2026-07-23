@@ -52,6 +52,23 @@ export function fromHex(hex: string): Uint8Array {
   return arr;
 }
 
+export const DEFAULT_ADMIN_SECRET = '6300000000000000000000000000000000000000000000000000000000000000';
+
+export function normalizeAdminSecret(input: string): string {
+  if (!input) return DEFAULT_ADMIN_SECRET;
+  const clean = input.trim().replace(/^0x/i, '');
+  if (/^[0-9a-fA-F]{64}$/.test(clean)) {
+    return clean.toLowerCase();
+  }
+  if (/^[0-9a-fA-F]+$/.test(clean)) {
+    return clean.padStart(64, '0').slice(0, 64).toLowerCase();
+  }
+  const hex = Array.from(new TextEncoder().encode(clean))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+  return hex.padStart(64, '0').slice(0, 64).toLowerCase();
+}
+
 export interface ProposalState {
   address: string;
   proposalId: string; // Hex string
@@ -398,7 +415,8 @@ export const VotingAPI = {
     eligibilityRootHex: string,
     mode: 'lace' | 'simulator'
   ): Promise<string> => {
-    const adminSk = fromHex(adminSecretHex);
+    const normalizedSkHex = normalizeAdminSecret(adminSecretHex);
+    const adminSk = fromHex(normalizedSkHex);
     const adminCommit = await sha256(adminSk);
     const adminCommitHex = toHex(adminCommit);
 
@@ -571,7 +589,8 @@ export const VotingAPI = {
     adminSecretHex: string,
     mode: 'lace' | 'simulator'
   ): Promise<void> => {
-    const adminSk = fromHex(adminSecretHex);
+    const normalizedSkHex = normalizeAdminSecret(adminSecretHex);
+    const adminSk = fromHex(normalizedSkHex);
     const hashOfSk = await sha256(adminSk);
     const hashOfSkHex = toHex(hashOfSk);
 
