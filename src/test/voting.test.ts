@@ -225,6 +225,7 @@ describe('Private Voting Smart Contract Tests', () => {
     }).toThrowError('failed assert: Double voting is not allowed');
   });
 
+  // Verify that voting is closed properly and subsequent votes are rejected (retaining Level 3 checks)
   it('Voting-closed rejection: vote cast after close is rejected', async () => {
     const proof = getProof(merkleTree, 5); // voter 5
 
