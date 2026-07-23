@@ -1,9 +1,9 @@
 # Midnight Credential-Gated Anonymous Voting MVP (Level 4)
 
-[![Continuous Integration](https://github.com/Aryan132005/Level3-New-Moon/actions/workflows/ci.yml/badge.svg)](../../actions)
+[![Continuous Integration](https://github.com/Aryan132005/Level4-New-Moon/actions/workflows/ci.yml/badge.svg)](../../actions)
 
 ## Live Demo
-[Vercel Live Deployment](https://level3-new-moon.vercel.app/)
+[Vercel Live Deployment](https://level4-new-moon.vercel.app/)
 
 ## Deployed Contract (Preprod)
 *   **Contract Address**: `0201d4a8e635fb8529f12384aee10069a0e0d6b100fa11076b10076a0e0a12cd` *(Placeholder: deploy via Lace Wallet from UI Dashboard to register your own Preprod address)*
