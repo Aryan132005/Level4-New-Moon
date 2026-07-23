@@ -1,191 +1,141 @@
-# Private Voting dApp on Midnight Blockchain
+# Midnight Credential-Gated Anonymous Voting MVP (Level 4)
 
-The video demonstration below shows the full functionality in action: proposal creation, random voter key generation, anonymous voting transitions, proof generation loading states, and administrative closure.
-### Private Voting Walkthrough Demo Video
-https://drive.google.com/file/d/1iyjeeGo0vQHOlLfhl4m_UCvnD_yn4p1K/view?usp=sharing
+[![Continuous Integration](https://github.com/Aryan132005/Level3-New-Moon/actions/workflows/ci.yml/badge.svg)](../../actions)
 
-### Live Deploy
-https://level3-new-moon.vercel.app/
+## Live Demo
+[Vercel Live Deployment](https://level3-new-moon.vercel.app/)
 
-![Private Voting Walkthrough Demo Video](./screenshots/demo_video.gif)
-[![Continuous Integration](https://github.com/Aryan132005/Level3-New-Moon/actions/workflows/ci.yml/badge.svg)](https://github.com/Aryan132005/Level3-New-Moon/actions/workflows/ci.yml)
+## Deployed Contract (Preprod)
+*   **Contract Address**: `0201d4a8e635fb8529f12384aee10069a0e0d6b100fa11076b10076a0e0a12cd` *(Placeholder: deploy via Lace Wallet from UI Dashboard to register your own Preprod address)*
+*   **Verifiable Indexer Link**: [Midnight Preprod Explorer](https://indexer.testnet.midnight.network/api/v1/graphql)
 
-A production-grade, privacy-preserving decentralized application (dApp) built on the Midnight blockchain. This dApp allows eligible voters to cast anonymous YES/NO ballots on proposals, where votes are verifiably tabulated but cannot be linked to the voters' on-chain identities.
+## Product X Profile
+[@MidnightVoteMVP](https://x.com/MidnightVoteMVP) *(Placeholder: update with your registered project X profile)*
 
-## Table of Contents
-1. [Privacy Model](#privacy-model)
-2. [System Architecture](#system-architecture)
-3. [Core Technologies](#core-technologies)
-4. [Prerequisites & Environment Setup](#prerequisites--environment-setup)
-5. [Compilation Guide](#compilation-guide)
-6. [Testing Guide](#testing-guide)
-7. [Running the Application](#running-the-application)
-8. [CI/CD Pipeline](#cicd-pipeline)
-9. [License](#license)
+---
+
+## What This Does
+This decentralized application (dApp) builds on the Level 3 private voting contract by introducing a **private credential gating layer**. 
+
+Only voters holding a valid, unrevealed credential (such as a membership badge or employee ID) stored on a private allowlist can cast a vote. The gating check occurs entirely inside a client-side Zero-Knowledge (ZK) proof. As a result, the blockchain verifies that the voter is authorized, but **never learns which credential they hold or who they are**, keeping the ballot completely anonymous and unlinkable.
+
+---
+
+## Architecture
+
+The system utilizes a depth-3 binary Merkle tree to represent the eligible voters list.
+
+```mermaid
+graph TD
+    A[Voter Eligibility Root] --> B[Left Subtree]
+    A --> C[Right Subtree]
+    B --> D[Level 1 Node 0]
+    B --> E[Level 1 Node 1]
+    C --> F[Level 1 Node 2]
+    C --> G[Level 1 Node 3]
+    D --> H[Leaf 0: Voter 1 Commitment]
+    D --> I[Leaf 1: Voter 2 Commitment]
+    E --> J[Leaf 2: Voter 3 Commitment]
+    E --> K[Leaf 3: Voter 4 Commitment]
+    F --> L[Leaf 4: Voter 5 Commitment]
+    F --> M[Leaf 5: Voter 6 Commitment]
+    G --> N[Leaf 6: Voter 7 Commitment]
+    G --> O[Leaf 7: Voter 8 Commitment]
+```
+
+### Components
+1.  **Ledger State**:
+    *   `proposalId`: Unique identifier for the voting session.
+    *   `proposalText`: The topic description.
+    *   `yesTally` & `noTally`: Running public counters.
+    *   `nullifierSet`: Map of spent nullifiers to prevent double-voting.
+    *   `eligibilityRoot`: The root of the depth-3 Merkle tree containing the 8 eligible voter commitments.
+    *   `votingOpen`: Administrative state tracking if voting is active.
+2.  **ZK Circuits**:
+    *   `castVote`:
+        *   Takes the private credential secret key `sk` and Merkle path details as private witnesses.
+        *   Derives the credential commitment leaf `persistentHash(sk)`.
+        *   Executes a branchless Merkle proof verification to check that the commitment leaf climbs up to `eligibilityRoot`.
+        *   Derives the deterministic nullifier: `persistentHash([sk, proposalId])`.
+        *   Asserts the nullifier has not been recorded in `nullifierSet`.
+        *   Increments the public tally.
+    *   `closeVoting`: Allows the contract creator to freeze voting by validating their admin key against the committed admin hash.
 
 ---
 
 ## Privacy Model
 
-This dApp implements a strict cryptographic privacy model using Zero-Knowledge Proofs (ZKP) to ensure voter anonymity while maintaining ledger integrity.
+### What an observer CAN learn:
+*   The public yes/no tally.
+*   That a valid vote was cast by *some* authorized credential holder.
+*   The total number of spent nullifiers.
 
-### Cryptographic Assurances
-*   **Voter Anonymity:** When casting a vote, the voter generates a ZK proof client-side using their private secret key (`voterSecretKey`). The smart contract never sees or stores this secret key.
-*   **Unlinkability:** The vote choice (YES or NO) is disclosed to the public ledger counters (`yesTally` and `noTally`) to allow live tabulations, but the transaction casting the vote cannot be linked to the voter's identity.
-*   **Double-Voting Prevention (Nullifiers):** To prevent a voter from voting multiple times, a unique nullifier is derived deterministically from the voter's private secret and the proposal ID:
-    $$\text{nullifier} = \text{persistentHash}(\text{voterSecretKey}, \text{proposalId})$$
-    This nullifier is recorded on-chain in `nullifierSet`. The ZK circuit verifies that the nullifier does not already exist in the set before permitting the transaction. Because the hash is one-way, an observer cannot derive the voter's identity from the nullifier.
-*   **Voting Period Enforcement:** A public ledger boolean `votingOpen` tracks if the poll is active. The circuit asserts `votingOpen == true` before allowing a vote to proceed.
-*   **Admin Closure:** The proposal creator commits an admin public key hash (`adminCommitment`) during deployment. To close the voting period, the admin must provide the matching secret key (`adminSecretKey`) to prove their authority inside a ZK proof.
-
-### Information Exposure Matrix
-
-| Actor | What They Learn | What They Cannot Learn |
-| :--- | :--- | :--- |
-| **Passive Observer / Node** | • Proposal text & ID<br>• Public counters (`yesTally`, `noTally`) <br>• Spent nullifiers list<br>• Voting state (`votingOpen`) | • Voter's identity / wallet address<br>• Which voter voted for which choice<br>• The admin's private secret key |
-| **Eligible Voter** | • Their own choice & key<br>• Current public tallies | • Other voters' choices or secrets |
-| **Contract Admin** | • Admin secret key<br>• Current public tallies | • Voter identities or their individual choices |
+### What an observer CANNOT learn:
+*   Which credential commitment in the Merkle tree was checked.
+*   The private credential secret keys or paths.
+*   Which voter cast which vote, or any link between a credential, wallet address, or ballot.
 
 ---
 
-## System Architecture
+## Setup & Local Execution
 
-The following diagram illustrates the transaction workflow for casting an anonymous ballot:
+### Prerequisites
+*   **Node.js**: >= v20.0.0
+*   **WSL (Windows Subsystem for Linux)**: Required to compile the Compact contract using the Linux binary compiler.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Voter as Eligible Voter
-    participant Web as Frontend UI
-    participant ZK as Client-Side ZK Prover
-    participant Ledger as Midnight Blockchain State
-    
-    Note over Voter, Web: Vote Casting Phase
-    Voter->>Web: Enter Secret Key & Click YES/NO
-    Web->>ZK: Generate Proof (voterSecretKey, choice, proposalId)
-    Note over ZK: Derives nullifier = hash(voterSecretKey, proposalId)<br/>Asserts nullifier is not spent<br/>Asserts votingOpen == true
-    ZK->>Web: Return ZK Proof & Disclosed Outputs
-    Web->>Ledger: Submit Vote Transaction
-    Note over Ledger: Verify ZK proof on-chain<br/>Record nullifier as spent<br/>Increment Yes/No Counter
-    Ledger-->>Web: Transaction Confirmed
-    Web-->>Voter: Update UI with Tally Results
+### 1. Compile Contract
+Ensure the Compact compiler is installed inside WSL. Run the compile command:
+```bash
+npm run compile
 ```
+This generates the ZK circuit representations and TypeScript contract interfaces in `contracts/managed/voting`.
+
+### 2. Seed Credentials Allowlist
+A seeding script is included to map out the 8 demo credentials and calculate the Merkle tree root:
+```bash
+node scripts/seed-credentials.js
+```
+Copy the printed `Voter Eligibility Merkle Root` from the console output.
+
+### 3. Run Frontend Locally
+Launch the Vite development server:
+```bash
+npm run dev
+```
+Open `http://localhost:5173` in your browser. The app defaults to **Sandbox Simulator** mode, seeded with our 8 eligible voter credentials, allowing full cryptographic validation without a wallet.
 
 ---
 
-## Core Technologies
+## Usage Guide (Non-Technical Review)
 
-1.  **Midnight L1 Ledger:** A privacy-first L1 ledger utilizing zero-knowledge proofs.
-2.  **Compact:** The domain-specific smart contract language developed by Midnight to define zk circuits and public state transitions.
-3.  **Midnight.js SDK:** TypeScript SDK used to deploy contracts, query states, and submit transaction proofs.
-4.  **Vite + React + TypeScript:** High-performance, premium frontend dashboard.
-5.  **Vitest:** Ultra-fast TypeScript unit testing framework running simulation tests.
-
----
-
-## Prerequisites & Environment Setup
-
-*   **Node.js:** v20.x or v22.x installed.
-*   **WSL (Windows Subsystem for Linux):** Required since the Compact compiler is native to Ubuntu/Linux.
-*   **Docker:** Installed and running on host system (required for test environment integration tests).
+1.  ** авто Autofill Credentials**: Select any of the **Voter 1 to Voter 8** buttons in the voting panel. This automatically populates the Voter Private Secret Key input field with a valid hex key from the allowlist.
+2.  **Cast Ballot**: Click **Vote YES** or **Vote NO**.
+3.  **Prover Pipeline Stepper**: Observe the ZK Prover pipeline states transition live:
+    *   *Stage 1*: Generating private credential membership proof (verifying membership in the Merkle Root).
+    *   *Stage 2*: Generating deterministic double-vote nullifier.
+    *   *Stage 3*: Submitting zero-knowledge transaction to the ledger.
+4.  **Try Double Voting**: Attempt to vote again using the same Voter key -> verify it is rejected with a distinct double-voting warning.
+5.  **Try Invalid Credentials**: Click **Generate Invalid** (or input an arbitrary key) and attempt to vote -> verify it is rejected with a distinct credential eligibility validation failure.
 
 ---
 
-## Compilation Guide
+## Testing
 
-Since the Compact compiler distributes Linux-native binaries, compilation must run inside WSL.
-
-1.  Open WSL (Ubuntu) and install the compiler:
-    ```bash
-    curl -sSfL https://github.com/midnightntwrk/compact/releases/download/compact-v0.5.1/compact-installer.sh | sh
-    ```
-2.  Add the compiler to path:
-    ```bash
-    export PATH="$HOME/.local/bin:$PATH"
-    ```
-3.  Navigate to the project root directory inside WSL (e.g., `/mnt/c/Users/user/OneDrive/Desktop/Level3 New Moon`) and compile:
-    ```bash
-    compact compile contracts/voting.compact contracts/managed/voting
-    ```
-    This generates the TypeScript bindings, ZK circuits, verifiers, and proving keys in `contracts/managed/voting`.
-
----
-
-## Testing Guide
-
-Our test suite uses in-memory simulation to run full contract circuit transitions client-side without launching Docker containers or devnets.
-
-1.  Install dependencies:
-    ```bash
-    npm install
-    ```
-2.  Run the Vitest test suite:
-    ```bash
-    npm run test
-    ```
-    *This runs three comprehensive tests verifying happy-path voting, double-voting rejection, and voting-closed rejection.*
-
-### Automated Test Output Verification
-Below is a screenshot of the 3 passing unit tests executing successfully in the Vitest environment:
-
-![Vitest Passing Test Output Screenshot]![alt text](image.png)
-
-
-### CI Pipelines
-
----
-
-## Running the Application
-
-To run the frontend locally:
-
-1.  Start the Vite dev server:
-    ```bash
-    npm run dev
-    ```
-2.  Open your browser and navigate to `http://localhost:5173`.
-3.  **Sandbox Mode:** If the Lace wallet is not connected, the dApp automatically boots into Sandbox ZK Simulator mode, allowing you to deploy proposals, generate voter secrets, cast anonymous votes, and close voting with full local cryptographic verification.
-4.  **Lace Wallet Mode:** Connect your Lace browser extension to deploy and transact on the live Midnight testnet.
-
----
-
-## Visual Demonstration
-
-### Application UI Dashboard
-Here is the custom dark glassmorphic user interface showing live proposals and ZK tally statistics:
-
-![Application UI Dashboard Screenshot]![alt text](image-1.png)
+Our test suite uses in-memory ZK proof simulation to run contract transitions client-side. To run the vitest suite:
+```bash
+npm run test
+```
+The test suite validates:
+*   **Happy Path**: Voter 0 (valid credential) casts a vote; yesTally increments.
+*   **Invalid Credential**: Voter key not in Merkle Root is rejected by the circuit.
+*   **Double-Vote Guard**: Re-voting with the same credential is blocked.
+*   **Voting closed**: Checks that votes are rejected once the admin freezes the poll.
 
 ---
 
 ## CI/CD Pipeline
-
-A GitHub Actions workflow is located at `.github/workflows/ci.yml`. On every push and pull request to `master` and `main`, the workflow:
+A GitHub Actions workflow is configured in `.github/workflows/ci.yml`. On every push and pull request, the pipeline:
 1. Installs the Compact compiler.
 2. Compiles `contracts/voting.compact`.
-3. Executes the Vitest unit tests.
-4. Runs the production build command (`npm run build`) to ensure bundle validity.
-
----
-
-## Troubleshooting & FAQs
-
-### WSL Paths and Compilation Mismatch
-If you get `Exception: voting.compact line 1: language version 0.23.0 mismatch` when running `compact compile`, make sure your contract has:
-```typescript
-pragma language_version 0.23;
-```
-which matches the syntax expected by the `compact` compiler (v0.31.x / v0.23.0 engine).
-
-### Web Crypto digest error in Browser
-If you get type errors regarding `ArrayBuffer` in Web Crypto APIs:
-```typescript
-const hashBuffer = await window.crypto.subtle.digest('SHA-256', data as any);
-```
-Ensure you have cast the `Uint8Array` to `any` or used `data.buffer` to pass the correct `ArrayBufferView` format.
-
----
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+3. Runs the Vitest test suite (`npm run test`).
+4. Executes `npm run build` to verify production assets and bundle integrity.
