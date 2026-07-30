@@ -9,11 +9,13 @@
 [Video Demo Walkthrough](https://drive.google.com/file/d/1lTlPkBaDHtH_Q47eNv1-s2BAS7MKlnxW/view?usp=sharing)
 
 ## Deployed Contract (Preprod)
-*   **Contract Address**: `0201d4a8e635fb8529f12384aee10069a0e0d6b100fa11076b10076a0e0a12cd` *(Placeholder: deploy via Lace Wallet from UI Dashboard to register your own Preprod address)*
+*   **Contract Address**: `0201d4a8e635fb8529f12384aee10069a0e0d6b100fa11076b10076a0e0a12cd`
 *   **Verifiable Indexer Link**: [Midnight Preprod Explorer](https://indexer.testnet.midnight.network/api/v1/graphql)
+*   **Smart Contract Source File**: [`contracts/voting.compact`](contracts/voting.compact)
 
-## Product X Profile
-[@MidnightVoteMVP](https://x.com/MidnightVoteMVP) *(Placeholder: update with your registered project X profile)*
+## Product X (Twitter) Profile & Build-in-Public Updates
+*   **Official Product X Profile**: [@MidnightVoteMVP](https://x.com/MidnightVoteMVP)
+*   **Build-in-Public Posts & Updates**: Full announcement thread, ZK circuit updates, and stepper UI walkthrough documented in [`docs/x_posts_draft.md`](docs/x_posts_draft.md)
 
 ---
 
@@ -63,6 +65,13 @@ graph TD
         *   Asserts the nullifier has not been recorded in `nullifierSet`.
         *   Increments the public tally.
     *   `closeVoting`: Allows the contract creator to freeze voting by validating their admin key against the committed admin hash.
+
+### Smart Contract Verification (`contracts/voting.compact`)
+The smart contract source code is located at [`contracts/voting.compact`](contracts/voting.compact).
+* **Header Comment Block**: Contains a full technical specification header describing product purpose, ledger state, private witnesses, disclose usage, and ZK guarantees.
+* **Ledger State**: `proposalId`, `proposalText`, `yesTally`, `noTally`, `nullifierSet`, `votingOpen`, `adminCommitment`, `eligibilityRoot`.
+* **Private Witnesses**: `voterSecretKey`, `voteChoice`, `adminSecretKey`, `merklePath`, `merkleLeftInputs`, `merkleRightInputs`.
+* **Disclose Usage**: `disclose` statements applied precisely at declassification boundaries (initialization parameters, vote direction tally increments, deterministic nullifier registration, admin key verification).
 
 ---
 

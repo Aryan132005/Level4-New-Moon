@@ -1,3 +1,36 @@
+/**
+ * Contract Name: Midnight Credential-Gated Anonymous Voting MVP (Level 4)
+ * Source File: contracts/voting.compact
+ * 
+ * Product Specification & Technical Core:
+ * --------------------------------------------
+ * This Compact smart contract implements a privacy-preserving, credential-gated voting protocol on the Midnight blockchain.
+ * 
+ * 1. LEDGER STATE (Public On-Chain State):
+ *    - proposalId: Bytes<32> - Unique 32-byte identifier for the voting proposal.
+ *    - proposalText: Opaque<"string"> - Public description of the proposal subject.
+ *    - yesTally: Counter - On-chain accumulator tracking affirmative votes.
+ *    - noTally: Counter - On-chain accumulator tracking negative votes.
+ *    - nullifierSet: Map<Bytes<32>, Boolean> - Spent nullifier registry blocking double voting without revealing voter identity.
+ *    - votingOpen: Boolean - Administrative flag controlling poll status.
+ *    - adminCommitment: Bytes<32> - Persistent hash commitment of admin secret key.
+ *    - eligibilityRoot: Bytes<32> - Merkle tree root of authorized voter credential commitments (Depth-3 binary tree).
+ * 
+ * 2. PRIVATE WITNESS DECLARATIONS (Client-Side ZK Witness Inputs):
+ *    - voterSecretKey(): Bytes<32> - Private credential key held by voter.
+ *    - voteChoice(): Boolean - Private ballot selection (true = YES, false = NO).
+ *    - adminSecretKey(): Bytes<32> - Private admin credential for poll closure.
+ *    - merklePath(): Vector<3, Bytes<32>> - Merkle tree sibling nodes for depth-3 membership verification.
+ *    - merkleLeftInputs(): Vector<3, Bytes<32>> - Left hash inputs per tree level for branchless verification.
+ *    - merkleRightInputs(): Vector<3, Bytes<32>> - Right hash inputs per tree level for branchless verification.
+ * 
+ * 3. DISCLOSE USAGE & ZERO-KNOWLEDGE BOUNDARIES:
+ *    - Constructor: disclose(pId), disclose(pText), disclose(adminCommit), disclose(eligRoot) expose public setup parameters.
+ *    - castVote(): disclose(voteChoice()) declassifies vote direction to adjust public tally without linking to credential.
+ *    - castVote(): disclose(persistentHash([sk, proposalId])) declassifies deterministic nullifier to enforce single-vote policy on-chain.
+ *    - closeVoting(): disclose(persistentHash(adminSk) == adminCommitment) declassifies authorization boolean to freeze poll.
+ */
+
 pragma language_version 0.23;
 
 import CompactStandardLibrary;
