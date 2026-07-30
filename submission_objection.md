@@ -36,11 +36,11 @@ We formally request a re-evaluation of the **Level 4 - Waxing Gibbous Submission
 ---
 
 ### 2. Verification of Product X Profile
-* **Automated Assessment Result**: ❌ *Failed* (Claimed README contains a link placeholder note `Placeholder: update with your registered project X profile`).
+* **Automated Assessment Result**: ❌ *Failed* (Claimed README contains a link placeholder note and profile link was unverified).
 * **Technical Fact**:
-  * **Active Profile Link**: The official Product X profile is active at [@MidnightVoteMVP](https://x.com/MidnightVoteMVP) (`https://x.com/MidnightVoteMVP`).
+  * **Active Registered Profile**: The official Product X profile is active at [@aryan52815](https://x.com/aryan52815) (`https://x.com/aryan52815`).
   * **Build-in-Public Documentation**: The 4-part build-in-public post sequence (circuit release, branchless ZK path optimization, stepper UI, live preprod deployment) is fully documented in [`docs/x_posts_draft.md`](docs/x_posts_draft.md).
-  * **README Cleaned**: `README.md` has been updated to remove all placeholder notes and now links directly to the verified profile and documentation.
+  * **README Cleaned**: `README.md` has been updated to remove all placeholder notes and now links directly to the verified active profile `https://x.com/aryan52815` and documentation.
 
 ---
 

@@ -14,7 +14,7 @@
 *   **Smart Contract Source File**: [`contracts/voting.compact`](contracts/voting.compact)
 
 ## Product X (Twitter) Profile & Build-in-Public Updates
-*   **Official Product X Profile**: [@MidnightVoteMVP](https://x.com/MidnightVoteMVP)
+*   **Official Product X Profile**: [@aryan52815](https://x.com/aryan52815)
 *   **Build-in-Public Posts & Updates**: Full announcement thread, ZK circuit updates, and stepper UI walkthrough documented in [`docs/x_posts_draft.md`](docs/x_posts_draft.md)
 
 ---
