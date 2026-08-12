@@ -8,6 +8,9 @@
 ## Video Demo
 [Video Demo Walkthrough](https://drive.google.com/file/d/1lTlPkBaDHtH_Q47eNv1-s2BAS7MKlnxW/view?usp=sharing)
 
+## X profile Link
+https://x.com/aryan52815
+
 ## Deployed Contract (Preprod)
 *   **Contract Address**: `0201d4a8e635fb8529f12384aee10069a0e0d6b100fa11076b10076a0e0a12cd`
 *   **Verifiable Indexer Link**: [Midnight Preprod Explorer](https://indexer.testnet.midnight.network/api/v1/graphql)
