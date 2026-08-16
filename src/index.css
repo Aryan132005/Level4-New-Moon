@@ -134,11 +134,11 @@ h1, h2, h3, h4 {
   box-shadow: 0 0 10px rgba(138, 43, 226, 0.1);
 }
 
-.badge-lace {
-  background: rgba(0, 240, 255, 0.1);
-  color: #a3f7ff;
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+.badge-freighter {
+  background: rgba(255, 93, 0, 0.1);
+  color: #ffaa7d;
+  border: 1px solid rgba(255, 93, 0, 0.3);
+  box-shadow: 0 0 10px rgba(255, 93, 0, 0.1);
 }
 
 .badge-open {

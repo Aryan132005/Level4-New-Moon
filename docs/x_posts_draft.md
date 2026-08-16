@@ -36,7 +36,7 @@ Here are 4 short posts drafting the build journey of the Credential-Gated Anonym
 ### 🧵 Post 4: Live on Preprod MVP
 > It’s official — our Credential-Gated Anonymous Voting MVP is live on the Midnight Preprod testnet! 🌔
 > 
-> Grab test tokens, connect your Lace Wallet, pick a demo credential, and cast your anonymous vote. Let us know your thoughts!
+> Grab test tokens, connect your Freighter Wallet, pick a demo credential, and cast your anonymous vote. Let us know your thoughts!
 > 
 > Live Demo: https://level4-new-moon.vercel.app/
 > Contract Address: `0201d4a8e635fb8529f12384aee10069a0e0d6b100fa11076b10076a0e0a12cd`

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   VotingAPI,
   ProposalState,
-  isLaceAvailable,
-  connectLaceWallet,
+  connectFreighterWallet,
   toHex,
   fromHex,
   sha256,
@@ -30,8 +29,8 @@ const DEMO_CREDENTIALS = [
 ];
 
 export function App() {
-  // Mode selection: 'simulator' (default sandbox) or 'lace' (live wallet)
-  const [mode, setMode] = useState<'simulator' | 'lace'>('simulator');
+  // Mode selection: 'simulator' (default sandbox) or 'freighter' (live wallet)
+  const [mode, setMode] = useState<'simulator' | 'freighter'>('simulator');
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   
   // Proposals list
@@ -118,18 +117,14 @@ export function App() {
     }
   }, [activeProposalId, proposals]);
 
-  // Connect Lace Wallet
+  // Connect Freighter Wallet
   const handleConnectWallet = async () => {
     try {
-      if (!isLaceAvailable()) {
-        showToast('error', 'Lace Wallet not detected. Please install the Lace extension.');
-        return;
-      }
-      showToast('info', 'Connecting to Lace Wallet...');
-      const connection = await connectLaceWallet();
+      showToast('info', 'Connecting to Freighter Wallet...');
+      const connection = await connectFreighterWallet();
       setWalletAddress(connection.address);
-      setMode('lace');
-      showToast('success', 'Connected to Lace Wallet!');
+      setMode('freighter');
+      showToast('success', 'Connected to Freighter Wallet!');
     } catch (err: any) {
       showToast('error', `Wallet connection failed: ${err.message}`);
     }
@@ -328,7 +323,7 @@ export function App() {
           {mode === 'simulator' ? (
             <span className="badge badge-simulator">Sandbox Simulator</span>
           ) : (
-            <span className="badge badge-lace">Connected to Lace ({walletAddress?.slice(0, 8)}...)</span>
+            <span className="badge badge-freighter">Connected to Freighter ({walletAddress?.slice(0, 8)}...)</span>
           )}
           
           {mode === 'simulator' && (
@@ -336,9 +331,9 @@ export function App() {
               Reset Sandbox
             </button>
           )}
-          {mode === 'simulator' && isLaceAvailable() && (
+          {mode === 'simulator' && (
             <button className="btn btn-secondary btn-action" onClick={handleConnectWallet}>
-              Connect Lace Wallet
+              Connect Freighter Wallet
             </button>
           )}
         </div>

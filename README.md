@@ -78,6 +78,14 @@ The smart contract source code is located at [`contracts/voting.compact`](contra
 
 ---
 
+## Screenshot 
+- **Onboarding walkthrough & wallet setup:**
+  ![alt text](![alt text](image-2.png))
+- **Active and closed proposal dashboard with live vote progress:**
+  ![alt text](![alt text](image.png))
+- **Close Deploy Vote Progress:**
+  ![alt text](![alt text](image-1.png))
+
 ## Privacy Model
 
 ### What an observer CAN learn:
