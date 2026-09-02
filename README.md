@@ -100,6 +100,11 @@ graph TD
 | **Voter Secrets** | _None_ | Private secret keys ($sk$) or Merkle authentication paths |
 
 ---
+## Screenshot 
+
+**Wallet Connect** ![alt text](image-3.png)
+**Proposal Contract** ![alt text](image-4.png)
+**CI Pipeline** ![alt text](image.png)
 
 ## 🛠️ Setup & Local Execution
 
