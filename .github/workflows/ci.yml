@@ -31,7 +31,7 @@ jobs:
       run: |
         curl -sSfL https://github.com/midnightntwrk/compact/releases/download/compact-v0.5.1/compact-installer.sh | sh
         echo "$HOME/.local/bin" >> $GITHUB_PATH
-        $HOME/.local/bin/compact update
+        $HOME/.local/bin/compact update 0.31.1
 
     - name: Verify Compact Installation
       run: |

@@ -31,7 +31,7 @@
  *    - closeVoting(): disclose(persistentHash(adminSk) == adminCommitment) declassifies authorization boolean to freeze poll.
  */
 
-pragma language_version 0.23;
+pragma language_version >= 0.23.0;
 
 import CompactStandardLibrary;
 
