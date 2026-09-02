@@ -108,10 +108,10 @@ adminSk[0] = 100;
 const adminCommit = sha256(adminSk);
 
 describe('Private Voting Smart Contract Tests', () => {
+  // Test 1: Happy Path
   it('Happy Path: cast a valid vote using voter 0 credential, tally increments by 1', async () => {
     const proof = getProof(merkleTree, 0);
 
-    // Mock witnesses
     const mockWitnesses = {
       voterSecretKey: (context: any) => [context.currentPrivateState, voterSks[0]] as [any, Uint8Array],
       voteChoice: (context: any) => [context.currentPrivateState, true] as [any, boolean], // Yes vote
@@ -149,9 +149,8 @@ describe('Private Voting Smart Contract Tests', () => {
     expect(finalLedger.noTally).toBe(0n);
   });
 
-  // Verify that an invalid credential (not present in the eligible Merkle Root) is rejected by the circuit
+  // Test 2: Invalid Credential Rejection
   it('Rejection: voting with an invalid credential is rejected', async () => {
-    // Generate a different set of keys including invalidSk to build a mathematically consistent proof for a different tree
     const invalidSk = new Uint8Array(32);
     invalidSk[0] = 99; // Arbitrary voter key not in Merkle root
     const invalidCommitment = sha256(invalidSk);
@@ -173,7 +172,6 @@ describe('Private Voting Smart Contract Tests', () => {
     const contract = new Contract(mockWitnesses);
     const constructorContext = createConstructorContext({}, dummyCoinPublicKey as any);
 
-    // Initialize state using the correct merkleTree.root
     const initResult = contract.initialState(constructorContext, proposalId, proposalText, adminCommit, merkleTree.root);
 
     const circuitContext = createCircuitContext(
@@ -188,7 +186,7 @@ describe('Private Voting Smart Contract Tests', () => {
     }).toThrowError('failed assert: Voter credential is not in the eligibility set');
   });
 
-  // Verify that casting two votes with the same credential key is rejected by the nullifier set check
+  // Test 3: Double-Vote Rejection
   it('Double-vote rejection: same credential nullifier used twice is rejected', async () => {
     const proof = getProof(merkleTree, 2); // voter 2
 
@@ -204,7 +202,6 @@ describe('Private Voting Smart Contract Tests', () => {
     const contract = new Contract(mockWitnesses);
     const constructorContext = createConstructorContext({}, dummyCoinPublicKey as any);
 
-    // Initialize state
     const initResult = contract.initialState(constructorContext, proposalId, proposalText, adminCommit, merkleTree.root);
 
     // Cast first vote
@@ -225,7 +222,7 @@ describe('Private Voting Smart Contract Tests', () => {
     }).toThrowError('failed assert: Double voting is not allowed');
   });
 
-  // Verify that voting is closed properly and subsequent votes are rejected (retaining Level 3 checks)
+  // Test 4: Voting-Closed Rejection
   it('Voting-closed rejection: vote cast after close is rejected', async () => {
     const proof = getProof(merkleTree, 5); // voter 5
 
@@ -241,7 +238,6 @@ describe('Private Voting Smart Contract Tests', () => {
     const contract = new Contract(mockWitnesses);
     const constructorContext = createConstructorContext({}, dummyCoinPublicKey as any);
 
-    // Initialize state
     const initResult = contract.initialState(constructorContext, proposalId, proposalText, adminCommit, merkleTree.root);
 
     // Close voting
@@ -260,5 +256,116 @@ describe('Private Voting Smart Contract Tests', () => {
     expect(() => {
       contract.circuits.castVote(closeResult.context);
     }).toThrowError('failed assert: Voting is closed');
+  });
+
+  // Test 5: Multi-Voter Progression
+  it('Multi-voter progression: sequential votes by distinct authorized voters update tallies accurately', async () => {
+    let currentVoterIdx = 0;
+    let currentVoteChoice = true;
+
+    const mockWitnesses = {
+      voterSecretKey: (context: any) => [context.currentPrivateState, voterSks[currentVoterIdx]] as [any, Uint8Array],
+      voteChoice: (context: any) => [context.currentPrivateState, currentVoteChoice] as [any, boolean],
+      adminSecretKey: (context: any) => [context.currentPrivateState, adminSk] as [any, Uint8Array],
+      merklePath: (context: any) => [context.currentPrivateState, getProof(merkleTree, currentVoterIdx).path] as [any, Uint8Array[]],
+      merkleLeftInputs: (context: any) => [context.currentPrivateState, getProof(merkleTree, currentVoterIdx).leftInputs] as [any, Uint8Array[]],
+      merkleRightInputs: (context: any) => [context.currentPrivateState, getProof(merkleTree, currentVoterIdx).rightInputs] as [any, Uint8Array[]],
+    };
+
+    const contract = new Contract(mockWitnesses);
+    const constructorContext = createConstructorContext({}, dummyCoinPublicKey as any);
+    const initResult = contract.initialState(constructorContext, proposalId, proposalText, adminCommit, merkleTree.root);
+
+    // Voter 0 votes YES
+    currentVoterIdx = 0;
+    currentVoteChoice = true;
+    let ctx = createCircuitContext(
+      dummyContractAddress(),
+      dummyCoinPublicKey as any,
+      initResult.currentContractState,
+      {}
+    );
+    let res = contract.circuits.castVote(ctx);
+
+    // Voter 3 votes NO
+    currentVoterIdx = 3;
+    currentVoteChoice = false;
+    res = contract.circuits.castVote(res.context);
+
+    // Voter 7 votes YES
+    currentVoterIdx = 7;
+    currentVoteChoice = true;
+    res = contract.circuits.castVote(res.context);
+
+    const finalLedger = ledger(res.context.currentQueryContext.state);
+    expect(finalLedger.yesTally).toBe(2n);
+    expect(finalLedger.noTally).toBe(1n);
+  });
+
+  // Test 6: Cross-Proposal Domain Separation
+  it('Domain separation: same credential secret key can vote on different proposals with distinct nullifiers', async () => {
+    const proposalId1 = new Uint8Array(32);
+    proposalId1[0] = 1;
+    const proposalId2 = new Uint8Array(32);
+    proposalId2[0] = 2;
+
+    const proof0 = getProof(merkleTree, 0);
+
+    const mockWitnesses = {
+      voterSecretKey: (context: any) => [context.currentPrivateState, voterSks[0]] as [any, Uint8Array],
+      voteChoice: (context: any) => [context.currentPrivateState, true] as [any, boolean],
+      adminSecretKey: (context: any) => [context.currentPrivateState, adminSk] as [any, Uint8Array],
+      merklePath: (context: any) => [context.currentPrivateState, proof0.path] as [any, Uint8Array[]],
+      merkleLeftInputs: (context: any) => [context.currentPrivateState, proof0.leftInputs] as [any, Uint8Array[]],
+      merkleRightInputs: (context: any) => [context.currentPrivateState, proof0.rightInputs] as [any, Uint8Array[]],
+    };
+
+    const contract = new Contract(mockWitnesses);
+    const constructorContext1 = createConstructorContext({}, dummyCoinPublicKey as any);
+    const constructorContext2 = createConstructorContext({}, dummyCoinPublicKey as any);
+
+    // Deploy proposal 1 and vote
+    const init1 = contract.initialState(constructorContext1, proposalId1, "Proposal 1", adminCommit, merkleTree.root);
+    const ctx1 = createCircuitContext(dummyContractAddress(), dummyCoinPublicKey as any, init1.currentContractState, {});
+    const res1 = contract.circuits.castVote(ctx1);
+    const ledger1 = ledger(res1.context.currentQueryContext.state);
+    expect(ledger1.yesTally).toBe(1n);
+
+    // Deploy proposal 2 and vote with SAME voter secret key
+    const init2 = contract.initialState(constructorContext2, proposalId2, "Proposal 2", adminCommit, merkleTree.root);
+    const ctx2 = createCircuitContext(dummyContractAddress(), dummyCoinPublicKey as any, init2.currentContractState, {});
+    const res2 = contract.circuits.castVote(ctx2);
+    const ledger2 = ledger(res2.context.currentQueryContext.state);
+    expect(ledger2.yesTally).toBe(1n);
+  });
+
+  // Test 7: Unauthorized Admin Key Rejection
+  it('Admin protection: unauthorized admin key cannot close the poll', async () => {
+    const wrongAdminSk = new Uint8Array(32);
+    wrongAdminSk[0] = 254; // incorrect secret key
+
+    const mockWitnesses = {
+      voterSecretKey: (context: any) => [context.currentPrivateState, voterSks[0]] as [any, Uint8Array],
+      voteChoice: (context: any) => [context.currentPrivateState, true] as [any, boolean],
+      adminSecretKey: (context: any) => [context.currentPrivateState, wrongAdminSk] as [any, Uint8Array],
+      merklePath: (context: any) => [context.currentPrivateState, []] as [any, Uint8Array[]],
+      merkleLeftInputs: (context: any) => [context.currentPrivateState, []] as [any, Uint8Array[]],
+      merkleRightInputs: (context: any) => [context.currentPrivateState, []] as [any, Uint8Array[]],
+    };
+
+    const contract = new Contract(mockWitnesses);
+    const constructorContext = createConstructorContext({}, dummyCoinPublicKey as any);
+    const initResult = contract.initialState(constructorContext, proposalId, proposalText, adminCommit, merkleTree.root);
+
+    const closeContext = createCircuitContext(
+      dummyContractAddress(),
+      dummyCoinPublicKey as any,
+      initResult.currentContractState,
+      {}
+    );
+
+    expect(() => {
+      contract.circuits.closeVoting(closeContext);
+    }).toThrowError('failed assert: Unauthorized admin');
   });
 });

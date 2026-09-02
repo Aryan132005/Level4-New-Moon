@@ -1,42 +1,58 @@
-# Midnight Credential-Gated Anonymous Voting MVP (Level 4)
+# Midnight Credential-Gated Anonymous Voting Suite (Level 4)
 
 [![Continuous Integration](https://github.com/Aryan132005/Level4-New-Moon/actions/workflows/ci.yml/badge.svg)](../../actions)
 
-## Live Demo
-[Vercel Live Deployment](https://level4-new-moon.vercel.app/)
-
-## Video Demo
-[Video Demo Walkthrough](https://drive.google.com/file/d/1lTlPkBaDHtH_Q47eNv1-s2BAS7MKlnxW/view?usp=sharing)
-
-## X profile Link
-https://x.com/aryan52815
-
-## Deployed Contract (Preprod)
-*   **Contract Address**: `0201d4a8e635fb8529f12384aee10069a0e0d6b100fa11076b10076a0e0a12cd`
-*   **Verifiable Indexer Link**: [Midnight Preprod Explorer](https://indexer.testnet.midnight.network/api/v1/graphql)
-*   **Smart Contract Source File**: [`contracts/voting.compact`](contracts/voting.compact)
-
-## Product X (Twitter) Profile & Build-in-Public Updates
-*   **Official Product X Profile**: [@aryan52815](https://x.com/aryan52815)
-*   **Build-in-Public Posts & Updates**: Full announcement thread, ZK circuit updates, and stepper UI walkthrough documented in [`docs/x_posts_draft.md`](docs/x_posts_draft.md)
+## 🌐 Live Deployments & Demo Links
+* **Live Web dApp**: [Vercel Production Deployment](https://level4-new-moon.vercel.app/)
+* **Video Walkthrough Demo**: [Google Drive Demo Walkthrough](https://drive.google.com/file/d/1lTlPkBaDHtH_Q47eNv1-s2BAS7MKlnxW/view?usp=sharing)
+* **Official Product X (Twitter)**: [@aryan52815](https://x.com/aryan52815)
+* **Build-in-Public Thread & ZK Updates**: Documented in [`docs/x_posts_draft.md`](docs/x_posts_draft.md)
+* **Preprod Deployed Contract Address**: `0201d4a8e635fb8529f12384aee10069a0e0d6b100fa11076b10076a0e0a12cd`
+* **Midnight Preprod Explorer Indexer**: [Midnight Preprod GraphQL](https://indexer.testnet.midnight.network/api/v1/graphql)
 
 ---
 
-## What This Does
-This decentralized application (dApp) builds on the Level 3 private voting contract by introducing a **private credential gating layer**. 
+## 🌔 Executive Overview
+This application delivers a production-grade, privacy-preserving governance suite on the Midnight blockchain. It introduces a **private credential-gating layer** backed by zero-knowledge proofs (ZK-SNARKs).
 
-Only voters holding a valid, unrevealed credential (such as a membership badge or employee ID) stored on a private allowlist can cast a vote. The gating check occurs entirely inside a client-side Zero-Knowledge (ZK) proof. As a result, the blockchain verifies that the voter is authorized, but **never learns which credential they hold or who they are**, keeping the ballot completely anonymous and unlinkable.
+Only voters possessing a valid, unrevealed 256-bit credential whose cryptographic commitment resides in an authorized depth-3 binary Merkle Tree allowlist can cast a vote. The membership verification occurs entirely inside a client-side ZK proof. The blockchain verifies that the voter is an authorized member of the set, but **never learns which credential they hold, which leaf in the tree was verified, or who they are**.
 
 ---
 
-## Architecture
+## ⚡ Key Production Features
 
-The system utilizes a depth-3 binary Merkle tree to represent the eligible voters list.
+### 1. 🌳 Interactive Merkle Tree Visualizer
+* Displays the complete depth-3 binary tree hierarchy from 8 voter leaf commitments up to the on-chain Eligibility Root.
+* Real-time interactive inspection: click any voter leaf to trace its hash authentication path ($L_0 \rightarrow L_1 \rightarrow L_2 \rightarrow \text{Root}$) highlighted with active glowing indicators.
+
+### 2. 🔬 ZK Circuit & Math Inspector
+* An auditor-friendly educational breakdown of the Compact smart contract circuit constraints.
+* Visualizes private witnesses, branchless path climbing equations, deterministic nullifier derivation, and selective disclosure boundaries.
+
+### 3. 📜 Verifiable On-Chain Audit Activity Feed
+* Immutable real-time activity log tracking contract deployments, ballot submissions, spent nullifiers, and poll freeze events.
+* Includes simulated block numbers, copyable transaction hashes, and event categorization tags.
+
+### 4. 🔍 Pre-Flight Voter Eligibility Diagnostics
+* Real-time testing tool allowing voters to diagnostic-check any secret key before broadcasting a transaction.
+* Instantly verifies allowlist inclusion, leaf index, and whether a nullifier has already been spent on the active proposal.
+
+### 5. 📑 Cryptographic Election Audit Certificate Exporter
+* Generates an authenticated audit report with 1-click in both formatted Markdown and raw JSON.
+* Contains complete proposal metadata, eligibility root, final tallies, spent nullifiers, and an integrity checksum.
+
+### 6. 🗂️ Categorized Proposal Explorer & Search
+* Create and browse proposals filtered by categories: **Governance**, **Protocol**, **Treasury**, **Security**, and **Community**.
+* Instant search and status filtering (**All**, **Open**, **Closed**).
+
+---
+
+## 🛡️ Architecture & Cryptographic Construction
 
 ```mermaid
 graph TD
-    A[Voter Eligibility Root] --> B[Left Subtree]
-    A --> C[Right Subtree]
+    A[Voter Eligibility Merkle Root] --> B[Subtree Level 2 Node 0]
+    A --> C[Subtree Level 2 Node 1]
     B --> D[Level 1 Node 0]
     B --> E[Level 1 Node 1]
     C --> F[Level 1 Node 2]
@@ -51,114 +67,93 @@ graph TD
     G --> O[Leaf 7: Voter 8 Commitment]
 ```
 
-### Components
-1.  **Ledger State**:
-    *   `proposalId`: Unique identifier for the voting session.
-    *   `proposalText`: The topic description.
-    *   `yesTally` & `noTally`: Running public counters.
-    *   `nullifierSet`: Map of spent nullifiers to prevent double-voting.
-    *   `eligibilityRoot`: The root of the depth-3 Merkle tree containing the 8 eligible voter commitments.
-    *   `votingOpen`: Administrative state tracking if voting is active.
-2.  **ZK Circuits**:
-    *   `castVote`:
-        *   Takes the private credential secret key `sk` and Merkle path details as private witnesses.
-        *   Derives the credential commitment leaf `persistentHash(sk)`.
-        *   Executes a branchless Merkle proof verification to check that the commitment leaf climbs up to `eligibilityRoot`.
-        *   Derives the deterministic nullifier: `persistentHash([sk, proposalId])`.
-        *   Asserts the nullifier has not been recorded in `nullifierSet`.
-        *   Increments the public tally.
-    *   `closeVoting`: Allows the contract creator to freeze voting by validating their admin key against the committed admin hash.
+### Components:
+1. **Ledger State (`contracts/voting.compact`)**:
+   * `proposalId: Bytes<32>`: Unique identifier for the voting session.
+   * `proposalText: Opaque<"string">`: Description of the ballot topic.
+   * `yesTally` & `noTally: Counter`: Public on-chain ballot counters.
+   * `nullifierSet: Map<Bytes<32>, Boolean>`: Spent nullifier registry blocking repeat voting without identity disclosure.
+   * `eligibilityRoot: Bytes<32>`: Root of the depth-3 Merkle tree containing 8 voter commitments.
+   * `votingOpen: Boolean`: Administrative state tracking whether poll is active.
+   * `adminCommitment: Bytes<32>`: Persistent hash commitment of admin secret key.
 
-### Smart Contract Verification (`contracts/voting.compact`)
-The smart contract source code is located at [`contracts/voting.compact`](contracts/voting.compact).
-* **Header Comment Block**: Contains a full technical specification header describing product purpose, ledger state, private witnesses, disclose usage, and ZK guarantees.
-* **Ledger State**: `proposalId`, `proposalText`, `yesTally`, `noTally`, `nullifierSet`, `votingOpen`, `adminCommitment`, `eligibilityRoot`.
-* **Private Witnesses**: `voterSecretKey`, `voteChoice`, `adminSecretKey`, `merklePath`, `merkleLeftInputs`, `merkleRightInputs`.
-* **Disclose Usage**: `disclose` statements applied precisely at declassification boundaries (initialization parameters, vote direction tally increments, deterministic nullifier registration, admin key verification).
+2. **ZK Circuits**:
+   * `castVote`:
+     * Takes voter private secret key $sk$ and Merkle path as private witnesses.
+     * Computes leaf commitment: $C = \text{persistentHash}(sk)$.
+     * Verifies branchless climbing up to `eligibilityRoot`.
+     * Derives deterministic nullifier: $\text{persistentHash}([sk, \text{proposalId}])$.
+     * Asserts nullifier is unspent in `nullifierSet` and inserts it.
+     * Selectively declassifies vote choice to increment `yesTally` or `noTally`.
+   * `closeVoting`:
+     * Validates admin secret key against `adminCommitment` and freezes the poll.
 
 ---
 
-## Screenshot 
-- **Onboarding walkthrough & wallet setup:**
-  ![alt text](![alt text](image-2.png))
-- **Active and closed proposal dashboard with live vote progress:**
-  ![alt text](![alt text](image.png))
-- **Close Deploy Vote Progress:**
-  ![alt text](![alt text](image-1.png))
+## 🔒 Privacy Model: What Is & Is Not Disclosed
 
-## Privacy Model
-
-### What an observer CAN learn:
-*   The public yes/no tally.
-*   That a valid vote was cast by *some* authorized credential holder.
-*   The total number of spent nullifiers.
-
-### What an observer CANNOT learn:
-*   Which credential commitment in the Merkle tree was checked.
-*   The private credential secret keys or paths.
-*   Which voter cast which vote, or any link between a credential, wallet address, or ballot.
+| Information | Public Observers CAN Learn | Observers CANNOT Learn |
+|---|---|---|
+| **Ballot Count** | Public running YES / NO tallies | Which voter chose YES or NO |
+| **Eligibility** | That the voter holds an authorized credential in the Merkle root | Which leaf in the tree was checked |
+| **Double-Vote Guard** | Total count of spent nullifiers | Any link between a nullifier and a wallet address or credential |
+| **Voter Secrets** | _None_ | Private secret keys ($sk$) or Merkle authentication paths |
 
 ---
 
-## Setup & Local Execution
+## 🛠️ Setup & Local Execution
 
 ### Prerequisites
-*   **Node.js**: >= v20.0.0
-*   **WSL (Windows Subsystem for Linux)**: Required to compile the Compact contract using the Linux binary compiler.
+* **Node.js**: `>= v20.0.0`
+* **WSL (Windows Subsystem for Linux)**: Required to re-compile the Compact contract using the Linux binary compiler.
 
-### 1. Compile Contract
-Ensure the Compact compiler is installed inside WSL. Run the compile command:
+### 1. Install Dependencies
 ```bash
-npm run compile
+npm install
 ```
-This generates the ZK circuit representations and TypeScript contract interfaces in `contracts/managed/voting`.
 
-### 2. Seed Credentials Allowlist
-A seeding script is included to map out the 8 demo credentials and calculate the Merkle tree root:
+### 2. Seed Credentials & Generate Merkle Tree
 ```bash
 node scripts/seed-credentials.js
 ```
-Copy the printed `Voter Eligibility Merkle Root` from the console output.
+This prints the ASCII tree hierarchy, displays the 8 demo voter commitments, and outputs the credentials manifest to `scripts/eligible-voters.json`.
 
-### 3. Run Frontend Locally
-Launch the Vite development server:
-```bash
-npm run dev
-```
-Open `http://localhost:5173` in your browser. The app defaults to **Sandbox Simulator** mode, seeded with our 8 eligible voter credentials, allowing full cryptographic validation without a wallet.
-
----
-
-## Usage Guide (Non-Technical Review)
-
-1.  ** авто Autofill Credentials**: Select any of the **Voter 1 to Voter 8** buttons in the voting panel. This automatically populates the Voter Private Secret Key input field with a valid hex key from the allowlist.
-2.  **Cast Ballot**: Click **Vote YES** or **Vote NO**.
-3.  **Prover Pipeline Stepper**: Observe the ZK Prover pipeline states transition live:
-    *   *Stage 1*: Generating private credential membership proof (verifying membership in the Merkle Root).
-    *   *Stage 2*: Generating deterministic double-vote nullifier.
-    *   *Stage 3*: Submitting zero-knowledge transaction to the ledger.
-4.  **Try Double Voting**: Attempt to vote again using the same Voter key -> verify it is rejected with a distinct double-voting warning.
-5.  **Try Invalid Credentials**: Click **Generate Invalid** (or input an arbitrary key) and attempt to vote -> verify it is rejected with a distinct credential eligibility validation failure.
-
----
-
-## Testing
-
-Our test suite uses in-memory ZK proof simulation to run contract transitions client-side. To run the vitest suite:
+### 3. Run Automated Tests
 ```bash
 npm run test
 ```
-The test suite validates:
-*   **Happy Path**: Voter 0 (valid credential) casts a vote; yesTally increments.
-*   **Invalid Credential**: Voter key not in Merkle Root is rejected by the circuit.
-*   **Double-Vote Guard**: Re-voting with the same credential is blocked.
-*   **Voting closed**: Checks that votes are rejected once the admin freezes the poll.
+The test suite validates 7 comprehensive cryptographic scenarios:
+1. **Happy Path**: Voter 0 casts a valid vote; YES tally increments.
+2. **Invalid Credential Rejection**: Key not in Merkle root is rejected.
+3. **Double-Vote Rejection**: Re-voting with the same credential key is blocked.
+4. **Voting-Closed Rejection**: Votes submitted after admin poll freeze are rejected.
+5. **Multi-Voter Progression**: Sequential voting by distinct authorized voters (Voters 0, 3, 7) updates tallies correctly.
+6. **Cross-Proposal Domain Separation**: Same credential key votes independently on different proposals with distinct nullifiers.
+7. **Admin Key Protection**: Unauthorized admin secret key cannot freeze the poll.
+
+### 4. Launch Frontend Locally
+```bash
+npm run dev
+```
+Open `http://localhost:5173` in your browser. The app defaults to **Sandbox Simulator** mode, pre-seeded with authorized credentials.
+
+### 5. Production Build
+```bash
+npm run build
+```
 
 ---
 
-## CI/CD Pipeline
-A GitHub Actions workflow is configured in `.github/workflows/ci.yml`. On every push and pull request, the pipeline:
-1. Installs the Compact compiler.
-2. Compiles `contracts/voting.compact`.
-3. Runs the Vitest test suite (`npm run test`).
-4. Executes `npm run build` to verify production assets and bundle integrity.
+## 🧭 Step-by-Step User Walkthrough
+
+1. **Select an Authorized Credential**: Click on any of the **Voter 1 to Voter 8** buttons in the voting panel. The 256-bit private secret key field will be populated automatically.
+2. **Cast Ballot**: Click **Vote YES** or **Vote NO**.
+3. **Watch the Prover Pipeline**: Observe the 3-stage ZK proving workflow transition live:
+   * *Stage 1*: Generating private credential membership proof (Merkle Root inclusion).
+   * *Stage 2*: Generating deterministic ballot nullifier.
+   * *Stage 3*: Submitting zero-knowledge transaction to the ledger.
+4. **Inspect the Merkle Tree**: Switch to the **🌳 Merkle Visualizer** tab to see the active voter node and its authentication path highlighted up to the root.
+5. **Verify Audit Trail**: Switch to the **📜 Audit Trail** tab to view your timestamped transaction and spent nullifier recorded in real-time.
+6. **Try Invalid Key Rejection**: Click **Generate Invalid** and attempt to vote $\rightarrow$ verify circuit rejection with an allowlist constraint failure toast.
+7. **Try Double-Voting**: Attempt to vote again with the same voter key $\rightarrow$ verify immediate rejection with a nullifier replay warning.
+8. **Export Audit Certificate**: Click **Export Audit Certificate** to view and copy a certified Markdown/JSON report of election tallies.

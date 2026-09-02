@@ -1,0 +1,55 @@
+{
+  "protocol": "Midnight Credential-Gated Anonymous Voting (Level 4)",
+  "merkleRoot": "43bdd68beb94b33bcd24a2a2e81864a7f24b2d2a224d284ab651989ab70b863b",
+  "voters": [
+    {
+      "index": 0,
+      "label": "Voter 1",
+      "privateSecretKeyHex": "0a00000000000000000000000000000000000000000000000000000000000000",
+      "commitmentLeafHex": "177149df55f3a2824842e5df7cee51be33d65d79926a233b7c12e37feadb622e"
+    },
+    {
+      "index": 1,
+      "label": "Voter 2",
+      "privateSecretKeyHex": "0b00000000000000000000000000000000000000000000000000000000000000",
+      "commitmentLeafHex": "1a85c133f8dbc2a3c7ef3526f2a8fa6a0dec2fbeb09c6c90910e139c80dc4220"
+    },
+    {
+      "index": 2,
+      "label": "Voter 3",
+      "privateSecretKeyHex": "0c00000000000000000000000000000000000000000000000000000000000000",
+      "commitmentLeafHex": "2c50785a40875293a2bbace907621c10bbc81775e43e53c485cd4100543c2815"
+    },
+    {
+      "index": 3,
+      "label": "Voter 4",
+      "privateSecretKeyHex": "0d00000000000000000000000000000000000000000000000000000000000000",
+      "commitmentLeafHex": "9b992384f7194cb721e3deb70813ca531757c558377aa83502b31b8e535ec803"
+    },
+    {
+      "index": 4,
+      "label": "Voter 5",
+      "privateSecretKeyHex": "0e00000000000000000000000000000000000000000000000000000000000000",
+      "commitmentLeafHex": "ddf85bb1c4eec161ade630b1299f79f05596e0001538ffcfc51ab3cad577a545"
+    },
+    {
+      "index": 5,
+      "label": "Voter 6",
+      "privateSecretKeyHex": "0f00000000000000000000000000000000000000000000000000000000000000",
+      "commitmentLeafHex": "7c61acdff3e9379caf53eaa919fe6d7fe55ad3a907eeea85e5a7ba1cfafacf03"
+    },
+    {
+      "index": 6,
+      "label": "Voter 7",
+      "privateSecretKeyHex": "1000000000000000000000000000000000000000000000000000000000000000",
+      "commitmentLeafHex": "56fd25956f759e64e853071ff01587c364eaf6286c97da600e0be78c701637db"
+    },
+    {
+      "index": 7,
+      "label": "Voter 8",
+      "privateSecretKeyHex": "1100000000000000000000000000000000000000000000000000000000000000",
+      "commitmentLeafHex": "3439ba20e7335d9d829f183fee6df2f0a5e06db74140d52c03a553d18023891e"
+    }
+  ],
+  "generatedAt": "2026-09-02T07:54:38.860Z"
+}

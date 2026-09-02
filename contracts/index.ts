@@ -10,10 +10,16 @@ export {
 } from './managed/voting/contract/index.js';
 import { Contract } from './managed/voting/contract/index.js';
 
+/**
+ * Path configuration for compiled ZK circuit assets (zkir, keys, prover config)
+ */
 export const zkConfigPath = typeof window !== 'undefined'
   ? 'contracts/managed/voting'
   : (typeof process !== 'undefined' && process.cwd) ? `${process.cwd()}/contracts/managed/voting` : 'contracts/managed/voting';
 
+/**
+ * Compiled Midnight Voting Contract specification with compiled file assets
+ */
 export const CompiledVotingContract = CompiledContract.make(
   'VotingContract',
   Contract,
@@ -22,3 +28,4 @@ export const CompiledVotingContract = CompiledContract.make(
   CompiledContract.withCompiledFileAssets(zkConfigPath),
 );
 
+export type VotingContractType = typeof CompiledVotingContract;

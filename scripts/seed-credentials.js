@@ -1,7 +1,13 @@
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 8 Pre-seeded Demo Voter Private Keys (Hex)
-const DEMO_CREDENTIALS = [
+export const DEMO_CREDENTIALS = [
   '0a00000000000000000000000000000000000000000000000000000000000000',
   '0b00000000000000000000000000000000000000000000000000000000000000',
   '0c00000000000000000000000000000000000000000000000000000000000000',
@@ -36,20 +42,33 @@ function toHex(arr) {
 }
 
 async function run() {
-  console.log('=== Midnight Credential Seeding Tool ===');
-  console.log('Generating commitments for the 8 eligible voters...\n');
+  console.log('====================================================');
+  console.log('  🌔 Midnight Credential Seeding & Tree Generator   ');
+  console.log('====================================================\n');
+  console.log('Generating 256-bit commitments for the 8 authorized voters...\n');
 
+  const voterRecords = [];
   const commitments = [];
+  
   for (let i = 0; i < DEMO_CREDENTIALS.length; i++) {
     const sk = fromHex(DEMO_CREDENTIALS[i]);
     const comm = sha256(sk);
     commitments.push(comm);
-    console.log(`Voter ${i + 1}:`);
-    console.log(`  Private Secret Key (Hex): ${DEMO_CREDENTIALS[i]}`);
-    console.log(`  Commitment Leaf (Hex):    ${toHex(comm)}`);
+
+    const record = {
+      index: i,
+      label: `Voter ${i + 1}`,
+      privateSecretKeyHex: DEMO_CREDENTIALS[i],
+      commitmentLeafHex: toHex(comm)
+    };
+    voterRecords.push(record);
+
+    console.log(`[Voter ${i + 1}]`);
+    console.log(`  Private Secret Key: 0x${DEMO_CREDENTIALS[i]}`);
+    console.log(`  Commitment Leaf:    0x${toHex(comm)}\n`);
   }
 
-  console.log('\nBuilding depth-3 binary Merkle tree...');
+  console.log('Constructing depth-3 binary Merkle tree...\n');
 
   // Level 1:
   const level1 = [];
@@ -69,15 +88,30 @@ async function run() {
   const root = sha256(concatBytes(level2[0], level2[1]));
   const rootHex = toHex(root);
 
-  console.log('\nMerkle Tree Levels:');
-  console.log(`  Level 0 (Leaves): [8 commitments]`);
-  console.log(`  Level 1 Nodes:   [${level1.map(toHex).join(', ')}]`);
-  console.log(`  Level 2 Nodes:   [${level2.map(toHex).join(', ')}]`);
-  console.log(`  Level 3 Root:    ${rootHex}`);
+  console.log('--- Merkle Tree Hierarchy ---');
+  console.log(`Level 3 (Root): 0x${rootHex}`);
+  console.log(`├── Level 2 Node 0: 0x${toHex(level2[0])}`);
+  console.log(`│   ├── Level 1 Node 0: 0x${toHex(level1[0])} (Leaves 0, 1)`);
+  console.log(`│   └── Level 1 Node 1: 0x${toHex(level1[1])} (Leaves 2, 3)`);
+  console.log(`└── Level 2 Node 1: 0x${toHex(level2[1])}`);
+  console.log(`    ├── Level 1 Node 2: 0x${toHex(level1[2])} (Leaves 4, 5)`);
+  console.log(`    └── Level 1 Node 3: 0x${toHex(level1[3])} (Leaves 6, 7)\n`);
 
-  console.log('\n=== Seeding Summary ===');
-  console.log(`Voter Eligibility Merkle Root: ${rootHex}`);
-  console.log('Use this Root to initialize your Midnight contract deployment.');
+  console.log('====================================================');
+  console.log(`Voter Eligibility Merkle Root: 0x${rootHex}`);
+  console.log('====================================================\n');
+
+  // Export JSON file for reference
+  const exportPayload = {
+    protocol: 'Midnight Credential-Gated Anonymous Voting (Level 4)',
+    merkleRoot: rootHex,
+    voters: voterRecords,
+    generatedAt: new Date().toISOString()
+  };
+
+  const exportPath = path.join(__dirname, 'eligible-voters.json');
+  fs.writeFileSync(exportPath, JSON.stringify(exportPayload, null, 2));
+  console.log(`✅ Exported eligible voters credential manifest to: scripts/eligible-voters.json\n`);
 }
 
 run();

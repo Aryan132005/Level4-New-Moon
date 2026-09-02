@@ -41,6 +41,10 @@ jobs:
       run: |
         compact compile contracts/voting.compact contracts/managed/voting
  
+    - name: Run Credential Seeding Tool & Manifest Generation
+      run: |
+        node scripts/seed-credentials.js
+
     - name: Run Vitest Unit Tests (Level 4 Credential Verification)
       run: |
         npm run test

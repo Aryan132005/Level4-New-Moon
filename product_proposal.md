@@ -1,44 +1,64 @@
-# Product Proposal: Private Voting dApp (Midnight Blockchain)
+# Product Proposal: Midnight Private Voting & Governance Suite
+
+**Document Version**: 2.0 (Level 4 - Waxing Gibbous / New Moon)  
+**Target Platform**: Midnight Blockchain (Compact ZK Circuits + Midnight.js)  
+**Live Demo**: [https://level4-new-moon.vercel.app/](https://level4-new-moon.vercel.app/)  
+**Contract Address**: `0201d4a8e635fb8529f12384aee10069a0e0d6b100fa11076b10076a0e0a12cd`
+
+---
 
 ## 1. Executive Summary
-Traditional digital voting systems face a critical tradeoff: auditability versus privacy. Transparent electronic voting exposes individual user selections, whereas secret ballots rely on trusted centralized authorities to compute tallies. 
+Traditional digital voting systems suffer from an inherent tension: transparent voting exposes ballot choices and voter identities, inviting bribery, coercion, and front-running; whereas private voting historically relied on centralized authorities or closed servers to aggregate results.
 
-The **Private Voting dApp** leverages the Midnight blockchain's Zero-Knowledge Proof (ZKP) capability to offer the first production-grade, decentralized voting solution that achieves **both** complete ballot privacy and transparent, on-chain public tallies.
-
----
-
-## 2. Problem Statement
-*   **Lack of Privacy:** Current DAO and L1 governance models (e.g., Snapshot, Tally) expose voter addresses and choices. This leads to voter coercion, front-running, and plagiarism.
-*   **Centralization Risk:** Web2 privacy-preserving polls rely on central servers to count results, creating single points of failure for censorship.
-*   **Double Voting:** Preventing double-voting on open ledgers historically required linking vote transactions to public wallet identities.
+The **Midnight Private Voting & Governance Suite** resolves this dilemma by deploying zero-knowledge proof (ZKP) circuits directly to the Midnight blockchain. It delivers a decentralized voting architecture where voter eligibility is verified through private Merkle Tree proofs and double-voting is blocked via deterministic nullifiers—all without exposing voter keys, wallet addresses, or ballot associations.
 
 ---
 
-## 3. Product Features & Privacy Guarantees
-*   **Anonymous Ballot Submissions:** Voters build zero-knowledge proofs client-side that prove eligibility to vote without revealing their public keys on-chain.
-*   **Deterministic Nullifiers:** Double-voting is mathematically blocked by checking unique, one-way nullifier commitments derived from voter secret keys:
-    $$\text{nullifier} = \text{persistentHash}(\text{voterSecretKey}, \text{proposalId})$$
-*   **Verifiable Ledger Tallies:** Tally modifications are registered transparently by updating public YES/NO ledger counters directly within the ZK circuit.
-*   **Designated Admin Closure:** Admin commitment keys verify admin authority in zero-knowledge to freeze polls, ensuring the voting period constraints are strictly followed.
+## 2. Core Problem Statements Solved
+
+| Problem | Industry Status Quo | Midnight Solution |
+|---|---|---|
+| **Voter Coercion & Bribery** | Snapshot / Tally broadcast wallet votes in plaintext. | Zero-knowledge client-side proofs keep individual choices unlinkable to addresses. |
+| **Sybil Attacks & Unauthorized Ballots** | Requires public address whitelists or centralized token snapshots. | Depth-3 Merkle allowlist verifies eligibility in ZK without revealing which voter voted. |
+| **Double-Voting** | Blockchains prevent double spending by checking address nonce/signatures publicly. | Cryptographic deterministic nullifiers ($\text{persistentHash}([sk, \text{proposalId}])$) block repeat votes privately. |
+| **Black-Box Skepticism** | Complex ZK systems confuse voters and stakeholders. | Interactive Merkle Visualizer, Circuit Inspector, and Cryptographic Audit Certificates provide full transparency. |
 
 ---
 
-## 4. Target Market & User Persona
-*   **Decentralized Autonomous Organizations (DAOs):** Seeking collusion-resistant, private ballot governance.
-*   **Corporate Board Votes:** Requiring secure, private votes with auditable outputs.
-*   **Privacy-Minded Community Polls:** For surveys where respondents seek absolute identity protection.
+## 3. Product Architecture & Production Features
+
+### 3.1 Privacy-Preserving Smart Contract (`contracts/voting.compact`)
+* **Ledger State**: Tracks public tallies (`yesTally`, `noTally`), unique proposal ID, on-chain eligibility Merkle root, admin freeze commitment, and spent nullifier registry.
+* **Client-Side Proving**: Uses Midnight's Compact language with branchless Merkle path verification and selective disclosure boundaries.
+
+### 3.2 Key Production Features
+1. **Interactive Merkle Tree Visualizer**:
+   Visual depth-3 tree displaying all levels from 8 leaf commitments up to the on-chain root, with real-time path inspection.
+2. **Real-Time Verifiable Audit Trail**:
+   Live feed of all on-chain/simulator events with simulated block numbers, copyable transaction hashes, and spent nullifier logs.
+3. **Pre-Flight Voter Eligibility Diagnostics**:
+   Pre-validation tool allowing voters to check if their key is authorized and unspent before broadcasting transactions.
+4. **Cryptographic Audit Certificate Exporter**:
+   One-click generation of authenticated Markdown and JSON election audit certificates for auditors and DAO treasuries.
+5. **Categorized Proposal Management**:
+   Support for Governance, Protocol, Treasury, Security, and Community proposals with status filtering and search.
+6. **Freighter Wallet & Sandbox Simulator Modes**:
+   Seamless dual-mode operation supporting both live testnet wallet interaction and standalone zero-configuration simulation.
 
 ---
 
-## 5. Technical Stack
-*   **ZK Ledger:** Midnight blockchain (Compact language circuits + Midnight.js wrapper)
-*   **Unit Tests:** Vitest & compact-runtime in-memory simulator
-*   **UI Client:** React (TypeScript) + custom glassmorphic styling
-*   **Wallet Integration:** Lace Wallet injector
+## 4. Market Fit & Use Cases
+
+* **Decentralized Autonomous Organizations (DAOs)**: Whistleblower votes, grant allocations, treasury dispersals, and confidential leadership elections.
+* **Corporate Governance & Board Resolutions**: Confidential board ballots with verifiable, tamper-evident audit logs.
+* **Academic & Research Peer Review**: Anonymous scoring and consensus without bias or social pressure.
 
 ---
 
-## 6. Future Expansion Roadmap
-1.  **Multi-Choice Voting:** Support multiple options rather than just binary YES/NO.
-2.  **Token-Weighted Governance:** Compute quadratic/token voting weights inside the ZK proof without revealing the voter's exact balance on-chain.
-3.  **Merkle Membership Eligibility:** Prove voter eligibility using a private Merkle path check against a pre-authorized tree of voter commitments.
+## 5. Technical Specifications
+
+* **Smart Contract Language**: Compact v0.23 (Midnight Network)
+* **Frontend Framework**: React 18 (TypeScript), Vite 5
+* **Cryptography**: Midnight persistentHash (SHA-256 equivalent in testkit/runtime), 256-bit entropy keys
+* **Wallet Standards**: Freighter Wallet API integration
+* **Testing Suite**: Vitest with `@midnight-ntwrk/compact-runtime` in-memory circuit execution
