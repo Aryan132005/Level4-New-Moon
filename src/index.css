@@ -6,44 +6,49 @@
   --bg-card: rgba(17, 17, 30, 0.78);
   --bg-glass: rgba(18, 18, 34, 0.65);
   --bg-input: rgba(10, 10, 20, 0.75);
-  
+
   --border-glass: rgba(255, 255, 255, 0.08);
   --border-highlight: rgba(255, 255, 255, 0.16);
   --border-focus: #8a2be2;
-  
-  --primary: #8a2be2;          /* Midnight Purple */
+
+  --primary: #8a2be2;
+  /* Midnight Purple */
   --primary-hover: #9d4edd;
   --primary-glow: rgba(138, 43, 226, 0.45);
   --primary-light: #c77dff;
-  
-  --secondary: #00f0ff;        /* Electric Cyan */
+
+  --secondary: #00f0ff;
+  /* Electric Cyan */
   --secondary-glow: rgba(0, 240, 255, 0.35);
   --secondary-dark: #008ba3;
-  
-  --accent-lime: #00ff87;       /* ZK Validated Green */
+
+  --accent-lime: #00ff87;
+  /* ZK Validated Green */
   --accent-lime-glow: rgba(0, 255, 135, 0.35);
-  --accent-amber: #ffb703;      /* Pending / Warning */
-  --accent-rose: #ff3366;       /* Rejection / Danger */
+  --accent-amber: #ffb703;
+  /* Pending / Warning */
+  --accent-rose: #ff3366;
+  /* Rejection / Danger */
   --accent-rose-glow: rgba(255, 51, 102, 0.35);
 
   --text-primary: #f8f9fc;
   --text-secondary: #a0a0ba;
   --text-muted: #656582;
-  
+
   --font-display: 'Outfit', -apple-system, sans-serif;
   --font-body: 'Inter', -apple-system, sans-serif;
   --font-mono: 'Fira Code', monospace;
-  
+
   --radius-xs: 6px;
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 22px;
   --radius-xl: 30px;
-  
+
   --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.35);
   --shadow-card: 0 10px 36px rgba(0, 0, 0, 0.5);
   --shadow-glow: 0 0 25px var(--primary-glow);
-  
+
   --transition-fast: 0.18s ease;
   --transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -60,7 +65,7 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-image: 
+  background-image:
     radial-gradient(circle at 12% 18%, rgba(138, 43, 226, 0.22) 0%, transparent 45%),
     radial-gradient(circle at 88% 12%, rgba(0, 240, 255, 0.14) 0%, transparent 40%),
     radial-gradient(circle at 50% 85%, rgba(112, 0, 255, 0.12) 0%, transparent 50%);
@@ -70,14 +75,21 @@ body {
   overflow-x: hidden;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.025em;
   color: #ffffff;
 }
 
-code, pre, .mono {
+code,
+pre,
+.mono {
   font-family: var(--font-mono);
 }
 
@@ -146,13 +158,18 @@ code, pre, .mono {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%);
+  background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.4) 50%, transparent 60%);
   animation: shine 4s infinite linear;
 }
 
 @keyframes shine {
-  0% { transform: translate(-100%, -100%) rotate(45deg); }
-  100% { transform: translate(100%, 100%) rotate(45deg); }
+  0% {
+    transform: translate(-100%, -100%) rotate(45deg);
+  }
+
+  100% {
+    transform: translate(100%, 100%) rotate(45deg);
+  }
 }
 
 .logo-title {
@@ -160,6 +177,7 @@ code, pre, .mono {
   font-weight: 800;
   background: linear-gradient(110deg, #ffffff 20%, #c4b5fd 70%, #00f0ff 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   line-height: 1.2;
 }
@@ -203,9 +221,23 @@ code, pre, .mono {
 }
 
 @keyframes pulse {
-  0% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(0, 255, 135, 0.7); }
-  70% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 0 6px rgba(0, 255, 135, 0); }
-  100% { transform: scale(0.95); opacity: 0.8; box-shadow: 0 0 0 0 rgba(0, 255, 135, 0); }
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+    box-shadow: 0 0 0 0 rgba(0, 255, 135, 0.7);
+  }
+
+  70% {
+    transform: scale(1.2);
+    opacity: 1;
+    box-shadow: 0 0 0 6px rgba(0, 255, 135, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+    box-shadow: 0 0 0 0 rgba(0, 255, 135, 0);
+  }
 }
 
 /* Badges */
@@ -1009,8 +1041,15 @@ code, pre, .mono {
 }
 
 @keyframes modalScale {
-  from { transform: scale(0.94); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .modal-header {
@@ -1074,8 +1113,15 @@ code, pre, .mono {
 }
 
 @keyframes slideIn {
-  from { transform: translateY(100%) scale(0.92); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
+  from {
+    transform: translateY(100%) scale(0.92);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 /* Spinner */
@@ -1090,7 +1136,9 @@ code, pre, .mono {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Empty State */
@@ -1111,16 +1159,20 @@ code, pre, .mono {
   .app-container {
     padding: 1rem;
   }
+
   .header {
     flex-direction: column;
     align-items: flex-start;
   }
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
+
   .demo-cred-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .proposal-tabs {
     flex-wrap: wrap;
   }

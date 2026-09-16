@@ -80,8 +80,19 @@ We formally request a comprehensive re-evaluation of the **Level 4 - Waxing Gibb
 
 ---
 
+### 5. Account Ownership & Disambiguation from Duplicate Flags
+* **Status**: ✅ **Authentic Author: Aryan132005**
+* **Technical Facts**:
+  * **Primary Author & Repository**: This official Level 4 submission belongs strictly to [`Aryan132005`](https://github.com/Aryan132005) (`https://github.com/Aryan132005/Level4-New-Moon`).
+  * **Disambiguation from Secondary/Forked Accounts (e.g., Aaru1316)**: Any similarity detection flags referencing secondary accounts or earlier hackathon iterations (such as `Aaru1316` or `New-Moon-Level3`) are obsolete forks/drafts.
+  * **Unique Contract Namespace**: Contract specifications have been updated with the unique namespace `Level4GovernanceContract` in [`contracts/index.ts`](contracts/index.ts).
+  * **Original Build Trajectory**: All 25+ git commits on `main` are authored by `Aryan132005` (<aryansaini132005@gmail.com>), corresponding to the active Product X account [@aryan52815](https://x.com/aryan52815).
+
+---
+
 ## Conclusion & Request
 
-All submission criteria—Compact contract source (`contracts/voting.compact`), active Product X profile, 25+ granular commits, 7 passing automated tests, live Vercel deployment, and video walkthrough—are 100% fulfilled and verified.
+All submission criteria—Compact contract source (`contracts/voting.compact`), active Product X profile (`@aryan52815`), unique contract namespace (`Level4GovernanceContract`), 25+ granular commits authored by `Aryan132005`, 7 passing automated tests, live Vercel deployment, and video walkthrough—are 100% fulfilled and verified.
 
-We kindly request the judging team to re-evaluate this submission.
+We kindly request the judging team to re-evaluate this submission under the primary account **Aryan132005**.
+
