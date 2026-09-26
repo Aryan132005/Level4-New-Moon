@@ -1,9 +1,10 @@
 # Midnight Credential-Gated Anonymous Voting Suite (Level 4)
 
-[![Continuous Integration](https://github.com/Aryan132005/Level4-New-Moon/actions/workflows/ci.yml/badge.svg)](../../actions)
+[![Continuous Integration]https://github.com/Aryan132005/Level4-New-Moon/actions]
 
 ## 🌐 Live Deployments & Demo Links
-* **Live Web dApp**: [Vercel Production Deployment](https://level4-new-moon.vercel.app/)
+* **Live Web dApp**: [Vercel Production Deployment]https://level4-moon.vercel.app/
+
 * **Video Walkthrough Demo**: [Google Drive Demo Walkthrough](https://drive.google.com/file/d/1lTlPkBaDHtH_Q47eNv1-s2BAS7MKlnxW/view?usp=sharing)
 * **Official Product X (Twitter)**: [@aryan52815](https://x.com/aryan52815)
 * **Build-in-Public Thread & ZK Updates**: Documented in [`docs/x_posts_draft.md`](docs/x_posts_draft.md)
